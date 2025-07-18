@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary colors - All Star Quiz theme */
+    --primary-50: 254 243 199;
+    --primary-100: 253 230 138;
+    --primary-200: 252 211 77;
+    --primary-300: 251 191 36;
+    --primary-400: 245 158 11;
+    --primary-500: 217 119 6;
+    --primary-600: 180 83 9;
+    --primary-700: 146 64 14;
+    --primary-800: 120 53 15;
+    --primary-900: 101 44 13;
+    --primary-950: 59 20 3;
+
+    /* Secondary colors */
+    --secondary-50: 240 249 255;
+    --secondary-100: 224 242 254;
+    --secondary-200: 186 230 253;
+    --secondary-300: 125 211 252;
+    --secondary-400: 56 189 248;
+    --secondary-500: 14 165 233;
+    --secondary-600: 2 132 199;
+    --secondary-700: 3 105 161;
+    --secondary-800: 7 89 133;
+    --secondary-900: 12 74 110;
+    --secondary-950: 8 47 73;
+
+    /* Quiz game specific colors */
+    --quiz-correct: 34 197 94;
+    --quiz-incorrect: 239 68 68;
+    --quiz-neutral: 156 163 175;
+    --quiz-warning: 245 158 11;
+
+    /* Background colors */
+    --background: 0 0 100;
+    --foreground: 222.2 84 4.9;
+
+    /* UI colors */
+    --card: 0 0 100;
+    --card-foreground: 222.2 84 4.9;
+    --popover: 0 0 100;
+    --popover-foreground: 222.2 84 4.9;
+    --muted: 210 40 98;
+    --muted-foreground: 215.4 16.3 46.9;
+    --accent: 210 40 98;
+    --accent-foreground: 222.2 84 4.9;
+    --destructive: 0 84.2 60.2;
+    --destructive-foreground: 210 40 98;
+    --border: 214.3 31.8 91.4;
+    --input: 214.3 31.8 91.4;
+    --ring: 222.2 84 4.9;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84 4.9;
+    --foreground: 210 40 98;
+    --card: 222.2 84 4.9;
+    --card-foreground: 210 40 98;
+    --popover: 222.2 84 4.9;
+    --popover-foreground: 210 40 98;
+    --muted: 217.2 32.6 17.5;
+    --muted-foreground: 215 20.2 65.1;
+    --accent: 217.2 32.6 17.5;
+    --accent-foreground: 210 40 98;
+    --border: 217.2 32.6 17.5;
+    --input: 217.2 32.6 17.5;
+    --ring: 212.7 26.8 83.9;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* All Star Quiz gradient background */
+    background: linear-gradient(135deg, 
+      hsl(var(--primary-500)) 0%, 
+      hsl(var(--secondary-500)) 50%, 
+      hsl(var(--primary-600)) 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  /* Gradient text utility for All Star Quiz branding */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-500 bg-clip-text text-transparent;
+  }
+
+  /* Glass morphism effect for quiz cards */
+  .glass-card {
+    @apply backdrop-blur-sm bg-white/10 border border-white/20;
+  }
+
+  /* Quiz button states */
+  .quiz-button {
+    @apply transition-all duration-200 ease-in-out transform;
+  }
+
+  .quiz-button:hover {
+    @apply scale-105 shadow-lg;
+  }
+
+  .quiz-button:active {
+    @apply scale-95;
+  }
+
+  .quiz-button-correct {
+    @apply bg-green-500 text-white border-green-600;
+  }
+
+  .quiz-button-incorrect {
+    @apply bg-red-500 text-white border-red-600;
+    animation: quiz-shake 0.5s ease-in-out;
+  }
+
+  .quiz-button-selected {
+    @apply bg-blue-500 text-white border-blue-600;
+  }
+
+  .quiz-button-disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+}
