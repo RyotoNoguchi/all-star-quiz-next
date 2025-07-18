@@ -26,7 +26,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # Local env files
-.env*.local
+.env
+
 
 # Vercel
 .vercel
@@ -98,3 +99,10 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# AI
+AI_INSTRUCTIONS.md
+
+# kiro
+
+.kiro/*
