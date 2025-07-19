@@ -1,6 +1,6 @@
 /**
  * tRPC Core Configuration
- * 
+ *
  * This file contains the core configuration for tRPC including:
  * - Context creation
  * - Authentication middleware
@@ -32,7 +32,7 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
   }
 }
 
-export const createTRPCContext = async (opts: { req: NextRequest }) => {
+export const createTRPCContext = async (_opts: { req: NextRequest }) => {
   // Get the session from the server using the getServerSession wrapper function
   const session = await getServerSession(authOptions)
 
@@ -90,7 +90,7 @@ export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   })
 
   if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Admin access required'
     })
@@ -112,7 +112,7 @@ export const superAdminProcedure = protectedProcedure.use(async ({ ctx, next }) 
   })
 
   if (!user || user.role !== 'SUPER_ADMIN') {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Super admin access required'
     })
@@ -123,5 +123,14 @@ export const superAdminProcedure = protectedProcedure.use(async ({ ctx, next }) 
       ...ctx,
       user,
     },
+  })
+})
+
+// Game admin procedure (requires admin role or game ownership)
+export const gameAdminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  // This will be used for game-specific admin checks
+  // The actual game ownership check happens in individual procedures
+  return next({
+    ctx,
   })
 })

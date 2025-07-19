@@ -6,31 +6,31 @@ import { z } from 'zod'
 const envSchema = z.object({
   // Database
   DATABASE_URL: z.string().url(),
-  
+
   // NextAuth.js
   NEXTAUTH_URL: z.string().url().optional(),
   NEXTAUTH_SECRET: z.string().min(1),
-  
+
   // OAuth Providers (optional for now)
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
-  
+
   // App Configuration
   NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  
+
   // Optional: Redis for sessions/rate limiting
   REDIS_URL: z.string().url().optional(),
-  
+
   // Optional: Email service
   EMAIL_SERVER_HOST: z.string().optional(),
   EMAIL_SERVER_PORT: z.string().optional(),
   EMAIL_SERVER_USER: z.string().optional(),
   EMAIL_SERVER_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
-  
+
   // Optional: Analytics and monitoring
   VERCEL_ANALYTICS_ID: z.string().optional(),
   SENTRY_DSN: z.string().url().optional(),
@@ -91,7 +91,7 @@ if (typeof window === 'undefined') {
   } catch (error) {
     console.error('❌ Environment variable validation failed:')
     if (error instanceof z.ZodError) {
-      error.issues.forEach((err: any) => {
+      error.issues.forEach((err: z.core.$ZodIssue) => {
         console.error(`  ${err.path.join('.')}: ${err.message}`)
       })
     }

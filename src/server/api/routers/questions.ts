@@ -1,6 +1,6 @@
 /**
  * Questions tRPC Router
- * 
+ *
  * Handles question management including:
  * - CRUD operations for questions
  * - Random question selection
@@ -9,6 +9,7 @@
 
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
+import { Prisma } from '@prisma/client'
 
 import {
   createTRPCRouter,
@@ -136,11 +137,16 @@ export const questionsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Convert undefined to null for nullable fields to satisfy Prisma types
+      const questionData = {
+        ...input,
+        explanation: input.explanation ?? null,
+        category: input.category ?? null,
+        createdBy: ctx.session.user.id,
+      }
+
       const question = await ctx.prisma.question.create({
-        data: {
-          ...input,
-          createdBy: ctx.session.user.id,
-        },
+        data: questionData as unknown as Prisma.QuestionCreateInput,
         select: {
           id: true,
           text: true,
@@ -177,9 +183,20 @@ export const questionsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input
 
+      // Convert undefined to null for nullable fields and filter out undefined properties
+      const filteredData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, value]) => value !== undefined)
+      )
+
+      const questionUpdateData = {
+        ...filteredData,
+        ...(updateData.explanation !== undefined && { explanation: updateData.explanation ?? null }),
+        ...(updateData.category !== undefined && { category: updateData.category ?? null }),
+      }
+
       const question = await ctx.prisma.question.update({
         where: { id },
-        data: updateData,
+        data: questionUpdateData as unknown as Prisma.QuestionUpdateInput,
         select: {
           id: true,
           text: true,

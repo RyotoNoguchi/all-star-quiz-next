@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 import {
   UpdateParticipantSchema,
   IdSchema,
@@ -11,7 +12,6 @@ import {
   protectedProcedure,
   adminProcedure,
   gameAdminProcedure,
-  participantProcedure,
 } from '@/server/api/trpc'
 
 export const participantsRouter = createTRPCRouter({
@@ -62,7 +62,7 @@ export const participantsRouter = createTRPCRouter({
         })
       }
 
-      const whereClause: any = {
+      const whereClause: Prisma.GameParticipantWhereInput = {
         gameId,
         ...(includeEliminated ? {} : {
           status: { in: ['ACTIVE', 'DISCONNECTED', 'WINNER'] },
@@ -188,16 +188,16 @@ export const participantsRouter = createTRPCRouter({
       // Calculate additional statistics
       const totalAnswers = participant.answers.length
       const responseTimes = participant.answers
-        .filter(a => a.responseTime !== null)
-        .map(a => a.responseTime!)
+        .filter((a: { responseTime: number | null }) => a.responseTime !== null)
+        .map((a: { responseTime: number | null }) => a.responseTime!)
 
       const stats = {
         totalAnswers,
         correctAnswers: participant.correctAnswers,
         incorrectAnswers: participant.incorrectAnswers,
-        timeoutAnswers: participant.answers.filter(a => a.isTimeout).length,
+        timeoutAnswers: participant.answers.filter((a: { isTimeout: boolean }) => a.isTimeout).length,
         averageResponseTime: responseTimes.length > 0
-          ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
+          ? responseTimes.reduce((sum: number, time: number) => sum + time, 0) / responseTimes.length
           : null,
         fastestResponse: responseTimes.length > 0 ? Math.min(...responseTimes) : null,
         slowestResponse: responseTimes.length > 0 ? Math.max(...responseTimes) : null,
@@ -301,7 +301,7 @@ export const participantsRouter = createTRPCRouter({
         })
       }
 
-      const updateData: any = { status }
+      const updateData: Prisma.GameParticipantUpdateInput = { status }
 
       if (status === 'ELIMINATED') {
         updateData.eliminatedAt = new Date()
@@ -416,37 +416,37 @@ export const participantsRouter = createTRPCRouter({
 
       // Calculate aggregate statistics
       const totalParticipants = participants.length
-      const activeParticipants = participants.filter(p => p.status === 'ACTIVE').length
-      const eliminatedParticipants = participants.filter(p => p.status === 'ELIMINATED').length
-      const disconnectedParticipants = participants.filter(p => p.status === 'DISCONNECTED').length
+      const activeParticipants = participants.filter((p: { status: string }) => p.status === 'ACTIVE').length
+      const eliminatedParticipants = participants.filter((p: { status: string }) => p.status === 'ELIMINATED').length
+      const disconnectedParticipants = participants.filter((p: { status: string }) => p.status === 'DISCONNECTED').length
 
-      const totalAnswers = participants.reduce((sum, p) => sum + p.answers.length, 0)
-      const totalCorrectAnswers = participants.reduce((sum, p) => sum + p.correctAnswers, 0)
-      const totalIncorrectAnswers = participants.reduce((sum, p) => sum + p.incorrectAnswers, 0)
-      const totalTimeouts = participants.reduce((sum, p) => 
-        sum + p.answers.filter(a => a.isTimeout).length, 0)
+      const totalAnswers = participants.reduce((sum: number, p: { answers: unknown[] }) => sum + p.answers.length, 0)
+      const totalCorrectAnswers = participants.reduce((sum: number, p: { correctAnswers: number }) => sum + p.correctAnswers, 0)
+      const totalIncorrectAnswers = participants.reduce((sum: number, p: { incorrectAnswers: number }) => sum + p.incorrectAnswers, 0)
+      const totalTimeouts = participants.reduce((sum: number, p: { answers: Array<{ isTimeout: boolean }> }) =>
+        sum + p.answers.filter((a: { isTimeout: boolean }) => a.isTimeout).length, 0)
 
-      const allResponseTimes = participants.flatMap(p => 
-        p.answers.filter(a => a.responseTime !== null).map(a => a.responseTime!))
-      
+      const allResponseTimes = participants.flatMap((p: { answers: Array<{ responseTime: number | null }> }) =>
+        p.answers.filter((a: { responseTime: number | null }) => a.responseTime !== null).map((a: { responseTime: number | null }) => a.responseTime!))
+
       const averageResponseTime = allResponseTimes.length > 0
-        ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length
+        ? allResponseTimes.reduce((sum: number, time: number) => sum + time, 0) / allResponseTimes.length
         : null
 
-      const fastestOverallResponse = allResponseTimes.length > 0 
-        ? Math.min(...allResponseTimes) 
+      const fastestOverallResponse = allResponseTimes.length > 0
+        ? Math.min(...allResponseTimes)
         : null
 
-      const slowestOverallResponse = allResponseTimes.length > 0 
-        ? Math.max(...allResponseTimes) 
+      const slowestOverallResponse = allResponseTimes.length > 0
+        ? Math.max(...allResponseTimes)
         : null
 
       return {
-        participants: participants.map((p, index) => ({
+        participants: participants.map((p: { status: string; answers: Array<{ isTimeout: boolean }> }, index: number) => ({
           ...p,
           rank: ['ACTIVE', 'WINNER'].includes(p.status) ? index + 1 : null,
           answerCount: p.answers.length,
-          timeoutCount: p.answers.filter(a => a.isTimeout).length,
+          timeoutCount: p.answers.filter((a: { isTimeout: boolean }) => a.isTimeout).length,
         })),
         statistics: {
           totalParticipants,
@@ -481,7 +481,7 @@ export const participantsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { limit, offset, gameId, status, playerId } = input
 
-      const whereClause: any = {
+      const whereClause: Prisma.GameParticipantWhereInput = {
         ...(gameId && { gameId }),
         ...(status && { status }),
         ...(playerId && { playerId }),
@@ -535,9 +535,14 @@ export const participantsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input
 
+      // Filter out undefined properties to satisfy exactOptionalPropertyTypes
+      const filteredData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, value]) => value !== undefined)
+      ) as Prisma.GameParticipantUpdateInput
+
       const updatedParticipant = await ctx.prisma.gameParticipant.update({
         where: { id },
-        data: updateData,
+        data: filteredData,
         include: {
           player: {
             select: {

@@ -1,4 +1,12 @@
 import { TRPCError } from '@trpc/server'
+
+// Extended TRPCError type with custom data
+type TRPCErrorWithData = TRPCError & {
+  data?: {
+    appErrorCode?: AppErrorCode
+    [key: string]: unknown
+  }
+}
 import { type TRPC_ERROR_CODE_KEY } from '@trpc/server/rpc'
 
 /**
@@ -147,7 +155,7 @@ export const createAppError = (
   })
   
   // Add custom data to the error
-  ;(error as any).data = {
+  ;(error as TRPCErrorWithData).data = {
     appErrorCode,
   }
   
@@ -158,12 +166,13 @@ export const createAppError = (
  * Checks if an error is an app-specific error
  */
 export const isAppError = (error: unknown): error is TRPCError & { data: { appErrorCode: AppErrorCode } } => {
+  const errorWithData = error as TRPCErrorWithData
   return (
     error instanceof TRPCError &&
-    typeof (error as any).data === 'object' &&
-    (error as any).data !== null &&
-    'appErrorCode' in (error as any).data &&
-    Object.values(APP_ERROR_CODES).includes((error as any).data.appErrorCode as AppErrorCode)
+    typeof errorWithData.data === 'object' &&
+    errorWithData.data !== null &&
+    'appErrorCode' in errorWithData.data &&
+    Object.values(APP_ERROR_CODES).includes(errorWithData.data.appErrorCode as AppErrorCode)
   )
 }
 
@@ -172,7 +181,7 @@ export const isAppError = (error: unknown): error is TRPCError & { data: { appEr
  */
 export const getErrorMessage = (error: unknown): string => {
   if (isAppError(error)) {
-    return ERROR_MESSAGES[(error as any).data.appErrorCode]
+    return ERROR_MESSAGES[(error as TRPCErrorWithData).data!.appErrorCode!]
   }
   
   if (error instanceof TRPCError) {
@@ -197,10 +206,10 @@ export const logError = (error: unknown, context?: string) => {
     console.error(
       `${timestamp} ${contextInfo} App Error:`,
       {
-        appErrorCode: (error as any).data.appErrorCode,
+        appErrorCode: (error as TRPCErrorWithData).data?.appErrorCode,
         trpcCode: error.code,
         message: error.message,
-        data: (error as any).data,
+        data: (error as TRPCErrorWithData).data,
         cause: error.cause,
       }
     )
@@ -210,7 +219,7 @@ export const logError = (error: unknown, context?: string) => {
       {
         code: error.code,
         message: error.message,
-        data: error.data,
+        data: (error as TRPCErrorWithData).data,
         cause: error.cause,
       }
     )
