@@ -1,8 +1,8 @@
 import { type FC } from 'react'
 import { MainLayout } from '@/components/layout/main-layout'
-import { Button } from '@/components/ui/button'
 import { UserButton } from '@/components/auth/user-button'
 import { SocketStatus } from '@/components/debug/socket-status'
+import { ActionButtons } from '@/components/home/action-buttons'
 
 const HomePage: FC = () => {
   return (
@@ -60,14 +60,7 @@ const HomePage: FC = () => {
         </div>
 
         {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Button variant="quiz" size="xl" className="font-bold">
-            Start Quiz Game
-          </Button>
-          <Button variant="outline" size="xl" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
-            How to Play
-          </Button>
-        </div>
+        <ActionButtons />
 
         {/* Development note */}
         <div className="mt-16 glass-card rounded-lg p-6 max-w-2xl">

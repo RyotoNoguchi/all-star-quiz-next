@@ -1,49 +1,41 @@
-import { type FC, useEffect, useState } from 'react'
-import { cn, formatTime, getTimeUrgencyClass, getProgressBarColor } from '@/lib/utils'
+import { type FC } from 'react'
+import { cn } from '@/lib/utils'
 
 type Props = {
+  timeLeft: number
   totalTime: number
-  onTimeUp: () => void
   isActive?: boolean
   className?: string
 }
 
 export const CountdownTimer: FC<Props> = ({ 
+  timeLeft,
   totalTime, 
-  onTimeUp, 
   isActive = true,
   className 
 }) => {
-  const [timeLeft, setTimeLeft] = useState(totalTime)
-
-  useEffect(() => {
-    if (!isActive) return
-
-    if (timeLeft <= 0) {
-      onTimeUp()
-      return
-    }
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          onTimeUp()
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [timeLeft, onTimeUp, isActive])
-
-  // Reset timer when totalTime changes
-  useEffect(() => {
-    setTimeLeft(totalTime)
-  }, [totalTime])
 
   const progress = (timeLeft / totalTime) * 100
   const isUrgent = timeLeft <= totalTime * 0.2 // Last 20% of time
+  
+  // Format time display
+  const formatTime = (seconds: number) => seconds.toString()
+  
+  // Get urgency-based styling
+  const getTimeUrgencyClass = (time: number, total: number) => {
+    const ratio = time / total
+    if (ratio <= 0.2) return 'text-red-400'
+    if (ratio <= 0.5) return 'text-yellow-400'
+    return 'text-white'
+  }
+  
+  // Get progress bar color
+  const getProgressBarColor = (time: number, total: number) => {
+    const ratio = time / total
+    if (ratio <= 0.2) return 'bg-red-500'
+    if (ratio <= 0.5) return 'bg-yellow-500'
+    return 'bg-green-500'
+  }
 
   return (
     <div className={cn('w-full max-w-md mx-auto', className)}>
@@ -57,7 +49,7 @@ export const CountdownTimer: FC<Props> = ({
           {formatTime(timeLeft)}
         </div>
         <div className="text-white/70 text-sm mt-1">
-          seconds remaining
+          秒
         </div>
       </div>
 
@@ -77,7 +69,7 @@ export const CountdownTimer: FC<Props> = ({
       {isUrgent && timeLeft > 0 && (
         <div className="text-center mt-3">
           <span className="text-red-300 text-sm font-medium animate-quiz-pulse">
-            Time running out!
+            時間が足りません！
           </span>
         </div>
       )}

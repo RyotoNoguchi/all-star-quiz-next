@@ -98,7 +98,7 @@ Based on `.kiro/specs/` documentation:
 - **Named Export Style**: Use direct export syntax (not separate export statement)
   - ✅ Good: `export const Component: FC = () => { return <div>Component</div>; };`
   - ❌ Bad: `const Component = () => {...}; export { Component };`
-- **Component Structure**: 
+- **Component Structure**:
   - For page components: `const ComponentName: FC<Props> = (props) => { ... }; export default ComponentName;`
   - For regular components: `export const ComponentName: FC<Props> = (props) => { ... };`
 
@@ -134,7 +134,7 @@ export const Component: FC<Props> = (props) => {
 // Page component example (for src/app/)
 const HomePage: FC = () => {
     const [count, setCount] = useState(0)
-    
+
     return <div>Home Page</div>
 }
 
@@ -142,6 +142,19 @@ export default HomePage
 ```
 
 ## Development Notes
+
+### Post-Implementation Verification
+**IMPORTANT**: After implementing any changes, ALWAYS verify the application works correctly using Playwright MCP:
+1. Start the development server with `npm run dev`
+2. Navigate to the application using Playwright MCP browser tools
+3. Test the implemented functionality through browser interactions
+4. Take screenshots to document the working state
+5. If errors or unexpected behavior are found:
+   - Analyze the issue through browser console messages and network requests
+   - Identify the root cause in the code
+   - Fix the implementation immediately
+   - Re-test with Playwright MCP to confirm the fix
+   - Only consider the task complete when the application works as expected
 
 ### Component Testing
 Test files are located in `src/components/__tests__/`. Focus on:
@@ -157,3 +170,41 @@ Test files are located in `src/components/__tests__/`. Focus on:
 
 ### Environment Variables
 See `.env.example` for required environment variables when implementing backend features (database, auth, Redis, etc.).
+
+
+## Gemini CLI 連携ガイド
+
+### 目的
+
+ユーザーが **「Geminiと相談しながら進めて」** （または類似表現）と指示した場合、
+Claude は **Gemini CLI** を随時呼び出しながら、複数ターンにわたる協業を行う。
+
+---
+
+### トリガー
+
+- 正規表現: `/(Gemini|ジェミニ).*(相談|協力|協業).*(しながら|して)/`
+- 一度トリガーした後は、ユーザーが明示的に終了を指示するまで **協業モード** を維持する。
+
+---
+
+### 協業ワークフロー (ループ可)
+
+| #   | 処理                | 詳細                                                                                                   |
+| --- | ------------------- | ------------------------------------------------------------------------------------------------------ |
+| 1   | **PROMPT 準備**     | 最新のユーザー要件 + これまでの議論要約を `$PROMPT` に格納                                             |
+| 2   | **Gemini 呼び出し** | `bash`<br>`gemini <<EOF`<br>`$PROMPT`<br>`EOF`<br>必要に応じ `--max_output_tokens` 等を追加 |
+| 3   | **出力貼り付け**    | `Gemini ➜` セクションに全文、長い場合は要約＋原文リンク                                                |
+| 4   | **Claude コメント** | `Claude ➜` セクションで Gemini の提案を分析・統合し、次アクションを提示                                |
+| 5   | **継続判定** | ユーザー入力 or プラン継続で 1〜4 を繰り返す。<br>「Geminiコラボ終了」「協業終了」「ここまででOK」等の指示で通常モード復帰 |
+
+---
+
+### 形式テンプレート
+
+```md
+**Gemini ➜**
+<Gemini からの応答>
+**Claude ➜**
+<統合コメント & 次アクション>
+```
