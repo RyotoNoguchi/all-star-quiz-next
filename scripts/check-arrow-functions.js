@@ -13,7 +13,8 @@ console.log('🔍 Checking for function declaration violations...\n');
 // Directories to check
 const checkDirs = [
   'src/components/',
-  'src/app/'
+  'src/app/',
+  'src/lib/'
 ];
 
 let hasViolations = false;
@@ -27,9 +28,9 @@ checkDirs.forEach(dir => {
   try {
     console.log(`📁 Checking ${dir}...`);
     
-    // Find function declarations with capital letters (likely React components)
+    // Find function declarations (React components and other functions)
     const result = execSync(
-      `grep -rn '^function [A-Z]' ${dir} || true`,
+      `grep -rn '^export function \\|^function [A-Z]' ${dir} || true`,
       { encoding: 'utf-8' }
     );
 

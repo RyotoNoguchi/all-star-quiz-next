@@ -33,6 +33,20 @@ const eslintConfig = [
       ],
     },
   },
+  // Enforce arrow functions in specific directories
+  {
+    files: ['src/components/**/*', 'src/app/**/*', 'src/lib/**/*'],
+    rules: {
+      // Prevent function declarations entirely in these directories
+      'func-style': [
+        'error',
+        'expression',
+        {
+          allowArrowFunctions: true,
+        },
+      ],
+    },
+  },
 ]
 
 export default eslintConfig

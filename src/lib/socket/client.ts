@@ -15,7 +15,7 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3002'
 /**
  * Initialize Socket.io connection
  */
-export function initializeSocket(): Socket {
+export const initializeSocket = (): Socket => {
   if (!socket) {
     socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
@@ -54,14 +54,14 @@ export function initializeSocket(): Socket {
 /**
  * Get the current socket instance
  */
-export function getSocket(): Socket | null {
+export const getSocket = (): Socket | null => {
   return socket
 }
 
 /**
  * Connect to Socket.io server
  */
-export function connectSocket(): void {
+export const connectSocket = (): void => {
   if (socket && !socket.connected) {
     socket.connect()
   }
@@ -70,7 +70,7 @@ export function connectSocket(): void {
 /**
  * Disconnect from Socket.io server
  */
-export function disconnectSocket(): void {
+export const disconnectSocket = (): void => {
   if (socket && socket.connected) {
     socket.disconnect()
   }
@@ -79,7 +79,7 @@ export function disconnectSocket(): void {
 /**
  * Clean up socket instance
  */
-export function cleanupSocket(): void {
+export const cleanupSocket = (): void => {
   if (socket) {
     socket.removeAllListeners()
     socket.disconnect()
@@ -176,10 +176,10 @@ export interface GameEvents {
 /**
  * Type-safe socket event emitter
  */
-export function emitSocketEvent<K extends keyof GameEvents>(
+export const emitSocketEvent = <K extends keyof GameEvents>(
   event: K,
   data: Parameters<GameEvents[K]>[0]
-): void {
+): void => {
   if (socket && socket.connected) {
     socket.emit(event, data)
   } else {
@@ -190,10 +190,10 @@ export function emitSocketEvent<K extends keyof GameEvents>(
 /**
  * Type-safe socket event listener
  */
-export function onSocketEvent<K extends keyof GameEvents>(
+export const onSocketEvent = <K extends keyof GameEvents>(
   event: K,
   listener: GameEvents[K]
-): void {
+): void => {
   if (socket) {
     socket.on(event, listener)
   }
@@ -202,10 +202,10 @@ export function onSocketEvent<K extends keyof GameEvents>(
 /**
  * Remove socket event listener
  */
-export function offSocketEvent<K extends keyof GameEvents>(
+export const offSocketEvent = <K extends keyof GameEvents>(
   event: K,
   listener?: GameEvents[K]
-): void {
+): void => {
   if (socket) {
     if (listener) {
       socket.off(event, listener)

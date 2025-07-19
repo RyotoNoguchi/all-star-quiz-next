@@ -43,8 +43,8 @@ npm run test:run        # Run tests once
 npm run test:coverage   # Run tests with coverage report
 
 # Arrow Function Compliance
-npm run check:arrow-functions                        # Check for function declaration violations
-grep -rn '^function [A-Z]' src/components/ src/app/ # Manual detection
+npm run check:arrow-functions                               # Check for function declaration violations
+grep -rn '^export function \|^function [A-Z]' src/components/ src/app/ src/lib/ # Manual detection
 ```
 
 ## Component Architecture
@@ -95,9 +95,9 @@ Based on `.kiro/specs/` documentation:
 ### React Component Rules
 
 #### 🚨 CRITICAL: Arrow Function Rule
-- **Arrow Functions**: ALL React components MUST be implemented as arrow functions (not function declarations)
-  - This applies to: `src/components/`, `src/components/ui/`, `src/components/layout/`, `src/components/game/`, `src/app/` and all subdirectories
-  - **ZERO EXCEPTIONS**: Every React component must use arrow function syntax
+- **Arrow Functions**: ALL functions MUST be implemented as arrow functions (not function declarations)
+  - This applies to: `src/components/`, `src/app/`, `src/lib/` and all subdirectories
+  - **ZERO EXCEPTIONS**: Every function must use arrow function syntax
   - **Enforcement**: ESLint will block commits with function declarations
   - **Pre-commit Hook**: Automatically checks for violations before commit
 

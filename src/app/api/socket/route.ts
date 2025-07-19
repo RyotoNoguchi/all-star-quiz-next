@@ -282,7 +282,7 @@ export async function POST(_request: NextRequest) {
 }
 
 // Export game room management functions for tRPC integration
-export function createGameRoom(code: string, adminId: string, maxPlayers: number = 20) {
+export const createGameRoom = (code: string, adminId: string, maxPlayers: number = 20) => {
   gameRooms.set(code, {
     code,
     adminId,
@@ -295,11 +295,11 @@ export function createGameRoom(code: string, adminId: string, maxPlayers: number
   return { success: true, gameCode: code }
 }
 
-export function getGameRoom(code: string) {
+export const getGameRoom = (code: string) => {
   return gameRooms.get(code)
 }
 
-export function deleteGameRoom(code: string) {
+export const deleteGameRoom = (code: string) => {
   const gameRoom = gameRooms.get(code)
   if (gameRoom) {
     // Notify all players that the game room is being deleted
