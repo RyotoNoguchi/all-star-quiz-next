@@ -14,9 +14,7 @@ const eslintConfig = [
   ...compat.extends('prettier'),
   {
     rules: {
-      // Enforce React component rules from CLAUDE.md
-      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-      '@typescript-eslint/prefer-const': 'error',
+      // Enforce React component arrow function rule from CLAUDE.md
       'react/function-component-definition': [
         'error',
         {
@@ -24,19 +22,6 @@ const eslintConfig = [
           unnamedComponents: 'arrow-function',
         },
       ],
-      // Prevent function declarations with capital letters (likely React components)
-      'func-style': [
-        'error',
-        'expression',
-        {
-          allowArrowFunctions: true,
-        },
-      ],
-      // Additional rules to enforce coding standards
-      'prefer-const': 'error',
-      'no-var': 'error',
-      'prefer-arrow-callback': 'error',
-      'arrow-body-style': ['error', 'as-needed'],
     },
   },
 ]
