@@ -163,6 +163,107 @@ const HomePage: FC = () => {
 export default HomePage
 ```
 
+## Unit Testing Requirements
+
+### 🚨 MANDATORY Unit Testing Rules
+
+**CRITICAL REQUIREMENT**: All business logic functions MUST have comprehensive unit tests. This is a **NON-NEGOTIABLE** rule for maintaining code quality and preventing regressions.
+
+#### 1. **Universal Coverage Requirement (REQUIRED)**
+**ALL logic files MUST have unit tests**:
+- `src/lib/game/**/*.ts` - Game logic functions
+- `src/lib/socket/**/*.ts` - Socket handlers and utilities
+- `src/server/api/routers/**/*.ts` - tRPC route logic
+- `src/lib/utils.ts` - Utility functions
+- `src/schemas/**/*.ts` - Schema validation logic
+
+**⚠️ RULE**: Any new function with business logic MUST include unit tests in the same PR.
+
+#### 2. **Test Coverage Standards (REQUIRED)**
+**Minimum coverage requirements**:
+```bash
+npm run test:coverage    # MUST achieve minimum 90% coverage
+```
+- **Functions**: 90% minimum coverage
+- **Branches**: 85% minimum coverage  
+- **Lines**: 90% minimum coverage
+- **Statements**: 90% minimum coverage
+
+#### 3. **Test File Structure (REQUIRED)**
+**Test file organization**:
+```
+src/
+├── lib/
+│   ├── game/
+│   │   ├── elimination-logic.ts
+│   │   └── __tests__/
+│   │       └── elimination-logic.test.ts
+│   └── socket/
+│       ├── elimination-handler.ts
+│       └── __tests__/
+│           └── elimination-handler.test.ts
+```
+
+#### 4. **Test Implementation Standards (REQUIRED)**
+**Every test file MUST include**:
+- **Setup/Teardown**: Proper test environment initialization
+- **Edge Cases**: All boundary conditions and error scenarios
+- **Mock Dependencies**: External dependencies properly mocked
+- **Type Safety**: Full TypeScript type coverage in tests
+- **Descriptive Names**: Clear, behavior-focused test descriptions
+
+#### 5. **Test Categories (REQUIRED)**
+**All logic functions MUST test**:
+- ✅ **Happy Path**: Normal execution scenarios
+- ✅ **Edge Cases**: Boundary conditions and limits
+- ✅ **Error Handling**: Exception scenarios and error states
+- ✅ **Input Validation**: Invalid input handling
+- ✅ **Type Safety**: TypeScript type compliance
+
+#### 6. **Pre-commit Validation (REQUIRED)**
+**Automated test enforcement**:
+```bash
+# Pre-commit hook MUST run and pass:
+npm run test:run         # All tests must pass
+npm run test:coverage    # Coverage requirements must be met
+npm run type-check       # TypeScript compliance
+```
+
+#### 7. **Documentation Requirements (REQUIRED)**
+**Test documentation MUST include**:
+- Function purpose and behavior description
+- Input parameter testing scenarios
+- Expected output verification
+- Mock setup explanations
+- Complex logic flow documentation
+
+#### 8. **Testing Tools and Framework**
+**Standardized testing stack**:
+- **Test Runner**: Vitest (configured)
+- **Assertions**: Vitest built-in assertions + jest-dom
+- **Mocking**: Vitest mocking capabilities
+- **Coverage**: Istanbul via Vitest
+- **Type Testing**: TypeScript + Vitest
+
+#### 9. **Exemptions and Exceptions**
+**Files exempt from unit testing**:
+- Pure React components (use component tests instead)
+- Configuration files (`*.config.ts`)
+- Type definitions (`*.d.ts`)
+- Build scripts and development tools
+
+**All other logic files have NO EXEMPTIONS**.
+
+#### 10. **Enforcement Protocol**
+**Violation response procedure**:
+1. **BLOCK**: PRs without required tests are automatically blocked
+2. **ANALYZE**: Identify missing test coverage areas
+3. **IMPLEMENT**: Create comprehensive test suites
+4. **VERIFY**: Ensure all tests pass and meet coverage requirements
+5. **DOCUMENT**: Update test documentation
+
+**This testing protocol ensures code reliability and prevents technical debt.**
+
 ## Development Notes
 
 ### 🚨 MANDATORY Post-Implementation Verification Rules
