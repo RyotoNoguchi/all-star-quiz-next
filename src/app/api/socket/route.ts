@@ -30,7 +30,7 @@ const playerSessions = new Map<string, {
   isActive: boolean
 }>()
 
-export async function GET(request: NextRequest) {
+export const GET = async (request: NextRequest) => {
   const { searchParams } = new URL(request.url)
   const action = searchParams.get('action')
 
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   return Response.json({ message: 'Socket.io server endpoint' })
 }
 
-export async function POST(_request: NextRequest) {
+export const POST = async (_request: NextRequest) => {
   try {
     // Initialize Socket.io server if not already done
     if (!io) {
@@ -180,7 +180,14 @@ export async function POST(_request: NextRequest) {
           action: 'start-game' | 'next-question' | 'end-game' | 'pause-game';
           gameCode: string;
           adminId: string;
-          payload?: any;
+          payload?: {
+            totalQuestions?: number;
+            question?: unknown;
+            timeLimit?: number;
+            winner?: unknown;
+            finalScores?: unknown;
+            reason?: string;
+          };
         }) => {
           const { action, gameCode, adminId, payload } = data
           
