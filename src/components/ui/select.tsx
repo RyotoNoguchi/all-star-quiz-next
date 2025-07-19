@@ -6,25 +6,25 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const Select = ({
+export const Select = ({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) => {
   return <SelectPrimitive.Root data-slot="select" {...props} />
 }
 
-const SelectGroup = ({
+export const SelectGroup = ({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Group>) => {
   return <SelectPrimitive.Group data-slot="select-group" {...props} />
 }
 
-const SelectValue = ({
+export const SelectValue = ({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) => {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
-const SelectTrigger = ({
+export const SelectTrigger = ({
   className,
   size = "default",
   children,
@@ -50,7 +50,7 @@ const SelectTrigger = ({
   )
 }
 
-const SelectContent = ({
+export const SelectContent = ({
   className,
   children,
   position = "popper",
@@ -85,7 +85,7 @@ const SelectContent = ({
   )
 }
 
-const SelectLabel = ({
+export const SelectLabel = ({
   className,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Label>) => {
@@ -98,7 +98,7 @@ const SelectLabel = ({
   )
 }
 
-const SelectItem = ({
+export const SelectItem = ({
   className,
   children,
   ...props
@@ -122,7 +122,7 @@ const SelectItem = ({
   )
 }
 
-const SelectSeparator = ({
+export const SelectSeparator = ({
   className,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Separator>) => {
@@ -135,7 +135,7 @@ const SelectSeparator = ({
   )
 }
 
-const SelectScrollUpButton = ({
+export const SelectScrollUpButton = ({
   className,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) => {
@@ -153,7 +153,7 @@ const SelectScrollUpButton = ({
   )
 }
 
-const SelectScrollDownButton = ({
+export const SelectScrollDownButton = ({
   className,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) => {
@@ -171,15 +171,3 @@ const SelectScrollDownButton = ({
   )
 }
 
-export {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-}

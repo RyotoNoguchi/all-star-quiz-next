@@ -45,6 +45,23 @@ const eslintConfig = [
           allowArrowFunctions: true,
         },
       ],
+      // Enforce direct export syntax (prevent separate export statements)
+      'import/no-default-export': 'off', // Allow default exports for pages
+      'import/prefer-default-export': 'off', // Prefer named exports
+    },
+  },
+  // Specific rules for UI components to enforce export patterns
+  {
+    files: ['src/components/ui/**/*'],
+    rules: {
+      // Prevent separate export statements in UI components
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ExportNamedDeclaration[declaration=null]',
+          message: 'Use direct export syntax (export const Component = ...) instead of separate export statements',
+        },
+      ],
     },
   },
 ]

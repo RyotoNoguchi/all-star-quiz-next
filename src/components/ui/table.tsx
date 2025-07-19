@@ -4,7 +4,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-const Table = ({ className, ...props }: React.ComponentProps<"table">) => {
+export const Table = ({ className, ...props }: React.ComponentProps<"table">) => {
   return (
     <div
       data-slot="table-container"
@@ -19,7 +19,7 @@ const Table = ({ className, ...props }: React.ComponentProps<"table">) => {
   )
 }
 
-const TableHeader = ({ className, ...props }: React.ComponentProps<"thead">) => {
+export const TableHeader = ({ className, ...props }: React.ComponentProps<"thead">) => {
   return (
     <thead
       data-slot="table-header"
@@ -29,7 +29,7 @@ const TableHeader = ({ className, ...props }: React.ComponentProps<"thead">) => 
   )
 }
 
-const TableBody = ({ className, ...props }: React.ComponentProps<"tbody">) => {
+export const TableBody = ({ className, ...props }: React.ComponentProps<"tbody">) => {
   return (
     <tbody
       data-slot="table-body"
@@ -39,7 +39,7 @@ const TableBody = ({ className, ...props }: React.ComponentProps<"tbody">) => {
   )
 }
 
-const TableFooter = ({ className, ...props }: React.ComponentProps<"tfoot">) => {
+export const TableFooter = ({ className, ...props }: React.ComponentProps<"tfoot">) => {
   return (
     <tfoot
       data-slot="table-footer"
@@ -52,7 +52,7 @@ const TableFooter = ({ className, ...props }: React.ComponentProps<"tfoot">) => 
   )
 }
 
-const TableRow = ({ className, ...props }: React.ComponentProps<"tr">) => {
+export const TableRow = ({ className, ...props }: React.ComponentProps<"tr">) => {
   return (
     <tr
       data-slot="table-row"
@@ -65,7 +65,7 @@ const TableRow = ({ className, ...props }: React.ComponentProps<"tr">) => {
   )
 }
 
-const TableHead = ({ className, ...props }: React.ComponentProps<"th">) => {
+export const TableHead = ({ className, ...props }: React.ComponentProps<"th">) => {
   return (
     <th
       data-slot="table-head"
@@ -78,7 +78,7 @@ const TableHead = ({ className, ...props }: React.ComponentProps<"th">) => {
   )
 }
 
-const TableCell = ({ className, ...props }: React.ComponentProps<"td">) => {
+export const TableCell = ({ className, ...props }: React.ComponentProps<"td">) => {
   return (
     <td
       data-slot="table-cell"
@@ -91,7 +91,7 @@ const TableCell = ({ className, ...props }: React.ComponentProps<"td">) => {
   )
 }
 
-const TableCaption = ({
+export const TableCaption = ({
   className,
   ...props
 }: React.ComponentProps<"caption">) => {
@@ -104,13 +104,3 @@ const TableCaption = ({
   )
 }
 
-export {
-  Table,
-  TableHeader,
-  TableBody,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableCaption,
-}

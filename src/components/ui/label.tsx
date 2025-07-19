@@ -5,7 +5,7 @@ import * as LabelPrimitive from "@radix-ui/react-label"
 
 import { cn } from "@/lib/utils"
 
-const Label = ({
+export const Label = ({
   className,
   ...props
 }: React.ComponentProps<typeof LabelPrimitive.Root>) => {
@@ -20,5 +20,3 @@ const Label = ({
     />
   )
 }
-
-export { Label }

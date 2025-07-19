@@ -6,31 +6,31 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const Dialog = ({
+export const Dialog = ({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) => {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
-const DialogTrigger = ({
+export const DialogTrigger = ({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Trigger>) => {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
-const DialogPortal = ({
+export const DialogPortal = ({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Portal>) => {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
 }
 
-const DialogClose = ({
+export const DialogClose = ({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Close>) => {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
-const DialogOverlay = ({
+export const DialogOverlay = ({
   className,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Overlay>) => {
@@ -46,7 +46,7 @@ const DialogOverlay = ({
   )
 }
 
-const DialogContent = ({
+export const DialogContent = ({
   className,
   children,
   showCloseButton = true,
@@ -80,7 +80,7 @@ const DialogContent = ({
   )
 }
 
-const DialogHeader = ({ className, ...props }: React.ComponentProps<"div">) => {
+export const DialogHeader = ({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       data-slot="dialog-header"
@@ -90,7 +90,7 @@ const DialogHeader = ({ className, ...props }: React.ComponentProps<"div">) => {
   )
 }
 
-const DialogFooter = ({ className, ...props }: React.ComponentProps<"div">) => {
+export const DialogFooter = ({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       data-slot="dialog-footer"
@@ -103,7 +103,7 @@ const DialogFooter = ({ className, ...props }: React.ComponentProps<"div">) => {
   )
 }
 
-const DialogTitle = ({
+export const DialogTitle = ({
   className,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Title>) => {
@@ -116,7 +116,7 @@ const DialogTitle = ({
   )
 }
 
-const DialogDescription = ({
+export const DialogDescription = ({
   className,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Description>) => {
@@ -129,15 +129,3 @@ const DialogDescription = ({
   )
 }
 
-export {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogOverlay,
-  DialogPortal,
-  DialogTitle,
-  DialogTrigger,
-}
