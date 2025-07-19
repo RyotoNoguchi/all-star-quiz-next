@@ -1,10 +1,16 @@
 import { type FC } from 'react'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Button } from '@/components/ui/button'
+import { UserButton } from '@/components/auth/user-button'
 
 const HomePage: FC = () => {
   return (
     <MainLayout>
+      {/* Authentication section */}
+      <div className="absolute top-4 right-4 z-10">
+        <UserButton />
+      </div>
+      
       <div className="flex flex-col items-center justify-center min-h-[80vh] text-center">
         {/* Main title */}
         <h1 className="text-6xl md:text-8xl font-bold gradient-text mb-8">

@@ -1,14 +1,6 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Enable React 19 features
-  experimental: {
-    reactCompiler: true,
-  },
-  
-  // Enable Turbopack for development
-  turbo: {},
-  
   // TypeScript configuration
   typescript: {
     // Dangerously allow production builds to successfully complete even if
