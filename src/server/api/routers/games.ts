@@ -494,6 +494,186 @@ export const gamesRouter = createTRPCRouter({
       }
     }),
 
+  // Admin: Get all games with detailed info
+  getAllGames: adminProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        limit: z.number().min(1).max(100).default(20),
+        search: z.string().optional(),
+        status: z.enum(['WAITING', 'STARTING', 'IN_PROGRESS', 'PAUSED', 'FINISHED', 'CANCELLED']).optional(),
+        adminId: z.string().cuid().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const skip = (input.page - 1) * input.limit
+
+      const where = {
+        ...(input.search && {
+          OR: [
+            { name: { contains: input.search, mode: 'insensitive' as const } },
+            { code: { contains: input.search, mode: 'insensitive' as const } },
+          ],
+        }),
+        ...(input.status && { status: input.status }),
+        ...(input.adminId && { adminId: input.adminId }),
+      }
+
+      const [games, total] = await Promise.all([
+        ctx.prisma.gameSession.findMany({
+          where,
+          include: {
+            admin: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
+              },
+            },
+            _count: {
+              select: {
+                participants: true,
+                gameQuestions: true,
+                playerAnswers: true,
+              },
+            },
+          },
+          skip,
+          take: input.limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        ctx.prisma.gameSession.count({ where }),
+      ])
+
+      return {
+        games,
+        pagination: {
+          page: input.page,
+          limit: input.limit,
+          total,
+          pages: Math.ceil(total / input.limit),
+        },
+      }
+    }),
+
+  // Admin: Update game status
+  updateGameStatus: adminProcedure
+    .input(
+      z.object({
+        gameId: z.string().cuid(),
+        status: z.enum(['WAITING', 'STARTING', 'IN_PROGRESS', 'PAUSED', 'FINISHED', 'CANCELLED']),
+        reason: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const game = await ctx.prisma.gameSession.findUnique({
+        where: { id: input.gameId },
+        select: { id: true, status: true, adminId: true },
+      })
+
+      if (!game) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Game not found',
+        })
+      }
+
+      const updatedGame = await ctx.prisma.gameSession.update({
+        where: { id: input.gameId },
+        data: {
+          status: input.status,
+          ...(input.status === 'FINISHED' && !game.adminId && { endedAt: new Date() }),
+          ...(input.status === 'CANCELLED' && { endedAt: new Date() }),
+        },
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          status: true,
+          updatedAt: true,
+        },
+      })
+
+      return updatedGame
+    }),
+
+  // Admin: Delete game
+  deleteGame: adminProcedure
+    .input(z.object({ gameId: z.string().cuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const game = await ctx.prisma.gameSession.findUnique({
+        where: { id: input.gameId },
+        include: {
+          _count: {
+            select: {
+              participants: true,
+              playerAnswers: true,
+            },
+          },
+        },
+      })
+
+      if (!game) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Game not found',
+        })
+      }
+
+      if (game.status === 'IN_PROGRESS') {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Cannot delete a game that is currently in progress',
+        })
+      }
+
+      await ctx.prisma.gameSession.delete({
+        where: { id: input.gameId },
+      })
+
+      return { success: true }
+    }),
+
+  // Admin: Get game statistics
+  getGameStats: adminProcedure.query(async ({ ctx }) => {
+    const [
+      totalGames,
+      gamesByStatus,
+      recentGames,
+      averageParticipants,
+      totalParticipants,
+    ] = await Promise.all([
+      ctx.prisma.gameSession.count(),
+      ctx.prisma.gameSession.groupBy({
+        by: ['status'],
+        _count: { status: true },
+      }),
+      ctx.prisma.gameSession.count({
+        where: {
+          createdAt: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
+          },
+        },
+      }),
+      ctx.prisma.gameParticipant.aggregate({
+        _avg: { score: true },
+      }),
+      ctx.prisma.gameParticipant.count(),
+    ])
+
+    return {
+      totalGames,
+      totalParticipants,
+      recentGames,
+      averageScore: averageParticipants._avg.score || 0,
+      gamesByStatus: gamesByStatus.reduce((acc, stat) => {
+        acc[stat.status] = stat._count.status
+        return acc
+      }, {} as Record<string, number>),
+    }
+  }),
+
   // Get public game list
   getPublicGames: publicProcedure
     .input(
