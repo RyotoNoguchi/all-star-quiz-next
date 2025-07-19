@@ -15,6 +15,13 @@ import {
   removePlayerSession, 
   getPlayerSession 
 } from '@/lib/socket/game-rooms'
+import {
+  startQuestionTimer,
+  handleAnswerSubmission,
+  clearQuestionTimers,
+  getActivePlayersCount
+} from '@/lib/socket/elimination-handler'
+import type { PlayerAnswerSubmission } from '@/lib/socket/types'
 
 // Socket.io server instance
 let io: Server | undefined
@@ -138,29 +145,52 @@ export const POST = async (_request: NextRequest) => {
           }
         })
 
-        // Handle quiz answer submission
-        socket.on('submit-answer', async (data: { 
-          gameCode: string; 
-          playerId: string; 
-          questionId: string;
-          selectedAnswer: string;
-          responseTime: number;
-        }) => {
+        // Handle quiz answer submission with elimination logic
+        socket.on('submit-answer', async (data: PlayerAnswerSubmission) => {
           const { gameCode, playerId, questionId, selectedAnswer, responseTime } = data
           
           try {
-            // Broadcast answer to game admin for processing
-            io?.to(gameCode).emit('answer-submitted', {
+            const gameRoom = gameRooms.get(gameCode)
+            if (!gameRoom) {
+              socket.emit('error', { message: 'Game room not found' })
+              return
+            }
+
+            // Validate that game is in progress
+            if (gameRoom.status !== 'in_progress') {
+              socket.emit('error', { message: 'Game is not in progress' })
+              return
+            }
+
+            // Handle answer submission through elimination system
+            const success = handleAnswerSubmission(
+              gameRoom,
               playerId,
               questionId,
               selectedAnswer,
-              responseTime,
-              timestamp: new Date().toISOString()
+              responseTime
+            )
+
+            if (!success) {
+              socket.emit('error', { 
+                message: 'Invalid answer submission' 
+              })
+              return
+            }
+
+            // Broadcast that answer was received (without revealing the answer)
+            io?.to(gameCode).emit('answer-received', {
+              playerId,
+              questionId,
+              timestamp: new Date().toISOString(),
+              activeAnswersCount: gameRoom.activeAnswers.size,
+              totalActivePlayers: getActivePlayersCount(gameRoom)
             })
 
             console.log(`📝 Answer submitted: Player ${playerId} in game ${gameCode}`)
           } catch (error) {
             console.error('Error submitting answer:', error)
+            socket.emit('error', { message: 'Failed to submit answer' })
           }
         })
 
@@ -208,18 +238,51 @@ export const POST = async (_request: NextRequest) => {
 
               case 'next-question':
                 gameRoom.currentQuestion += 1
-                io?.to(gameCode).emit('next-question', {
-                  questionNumber: gameRoom.currentQuestion,
-                  question: payload?.question,
-                  timeLimit: payload?.timeLimit || 10
-                })
+                
+                // Start elimination timer for the new question
+                if (payload?.question && typeof payload.question === 'object') {
+                  const question = payload.question as {
+                    id: string
+                    text: string
+                    optionA: string
+                    optionB: string
+                    optionC: string
+                    optionD: string
+                    correctAnswer: string
+                    explanation?: string
+                  }
+                  
+                  const isFinalQuestion = gameRoom.currentQuestion >= gameRoom.totalQuestions
+                  
+                  // Send question to players
+                  io?.to(gameCode).emit('next-question', {
+                    questionNumber: gameRoom.currentQuestion,
+                    question: {
+                      id: question.id,
+                      text: question.text,
+                      optionA: question.optionA,
+                      optionB: question.optionB,
+                      optionC: question.optionC,
+                      optionD: question.optionD
+                    },
+                    timeLimit: 10,
+                    isFinalQuestion,
+                    activePlayersCount: getActivePlayersCount(gameRoom)
+                  })
+                  
+                  // Start the elimination timer
+                  startQuestionTimer(gameRoom, question, io!, isFinalQuestion)
+                }
                 break
 
               case 'end-game':
+                // Clear any active timers
+                clearQuestionTimers(gameRoom)
                 gameRoom.status = 'finished'
                 io?.to(gameCode).emit('game-ended', {
                   winner: payload?.winner,
-                  finalScores: payload?.finalScores
+                  finalScores: payload?.finalScores,
+                  reason: payload?.reason || 'Game ended by admin'
                 })
                 break
 
@@ -244,10 +307,14 @@ export const POST = async (_request: NextRequest) => {
             if (gameRoom) {
               gameRoom.players.delete(playerSession.playerId)
               
+              // Mark player as eliminated due to disconnection
+              gameRoom.eliminatedPlayers.add(playerSession.playerId)
+              
               // Notify remaining players about disconnection
               io?.to(playerSession.gameCode).emit('player-disconnected', {
                 playerId: playerSession.playerId,
-                playerCount: gameRoom.players.size
+                playerCount: gameRoom.players.size,
+                activePlayersCount: getActivePlayersCount(gameRoom)
               })
             }
           }

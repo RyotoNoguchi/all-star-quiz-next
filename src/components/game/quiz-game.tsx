@@ -45,20 +45,7 @@ type Question = {
   optionC: string
   optionD: string
   correctAnswer: string
-  explanation?: string
-}
-
-type GameEndData = {
-  winner: {
-    id: string
-    name: string
-  } | null
-  finalScores: Array<{
-    playerId: string
-    playerName: string
-    score: number
-    rank: number
-  }>
+  explanation?: string | undefined
 }
 
 type QuizState = {
@@ -177,29 +164,84 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
     return 'default'
   }
 
-  // Set up socket event listeners
+  // Set up socket event listeners for elimination system
   useEffect(() => {
     if (!socket) return
 
     // Question events
     onSocketEvent('next-question', handleNewQuestion)
 
-    // Player elimination
-    const handlePlayerEliminated = (data: { playerId: string; reason: string }) => {
-      if (data.playerId === playerId) {
-        setQuizState(prev => ({
-          ...prev,
-          isEliminated: true
-        }))
-      }
-    }
-
-    // Game ended
-    const handleGameEnded = (_data: GameEndData) => {
+    // Timer updates from server
+    const handleTimerUpdate = (data: { remainingTime: number; isUrgent: boolean }) => {
       setQuizState(prev => ({
         ...prev,
-        showResults: true
+        timeLeft: data.remainingTime
       }))
+    }
+
+    // Question results with elimination logic
+    const handleQuestionResult = (data: {
+      questionId: string
+      correctAnswer: string
+      explanation?: string
+      eliminatedPlayerId: string | null
+      winnerId: string | null
+      correctAnswerers: string[]
+      incorrectAnswerers: string[]
+      survivors: string[]
+      isFinalQuestion: boolean
+    }) => {
+      const wasEliminated = data.eliminatedPlayerId === playerId
+      const isWinner = data.winnerId === playerId
+
+      setQuizState(prev => ({
+        ...prev,
+        showResults: true,
+        isEliminated: wasEliminated,
+        isWinner: isWinner,
+        eliminationReason: wasEliminated 
+          ? (data.isFinalQuestion 
+            ? 'Game ended - you were not the fastest!' 
+            : 'You were eliminated for being the slowest correct responder!')
+          : undefined,
+        currentQuestion: prev.currentQuestion ? {
+          ...prev.currentQuestion,
+          correctAnswer: data.correctAnswer,
+          explanation: data.explanation
+        } : null
+      }))
+    }
+
+    // Game over with final results
+    const handleGameOver = (data: {
+      winnerId: string
+      finalRanking: Array<{
+        playerId: string
+        playerName: string
+        rank: number
+        questionsAnswered: number
+      }>
+    }) => {
+      const isWinner = data.winnerId === playerId
+      setQuizState(prev => ({
+        ...prev,
+        isGameOver: true,
+        isWinner: isWinner,
+        finalRanking: data.finalRanking
+      }))
+    }
+
+    // Answer received confirmation
+    const handleAnswerReceived = (data: {
+      playerId: string
+      questionId: string
+      timestamp: string
+      activeAnswersCount: number
+      totalActivePlayers: number
+    }) => {
+      if (data.playerId === playerId) {
+        console.log('Answer confirmed received by server')
+      }
     }
 
     // Player count updates
@@ -210,14 +252,18 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
       }))
     }
 
-    onSocketEvent('player-eliminated', handlePlayerEliminated)
-    onSocketEvent('game-ended', handleGameEnded)
+    onSocketEvent('timer-update', handleTimerUpdate)
+    onSocketEvent('question-result', handleQuestionResult)
+    onSocketEvent('game-over', handleGameOver)
+    onSocketEvent('answer-received', handleAnswerReceived)
     onSocketEvent('player-left', handlePlayerLeft)
 
     return () => {
       offSocketEvent('next-question', handleNewQuestion)
-      offSocketEvent('player-eliminated', handlePlayerEliminated)
-      offSocketEvent('game-ended', handleGameEnded)
+      offSocketEvent('timer-update', handleTimerUpdate)
+      offSocketEvent('question-result', handleQuestionResult)
+      offSocketEvent('game-over', handleGameOver)
+      offSocketEvent('answer-received', handleAnswerReceived)
       offSocketEvent('player-left', handlePlayerLeft)
     }
   }, [socket, handleNewQuestion, playerId])

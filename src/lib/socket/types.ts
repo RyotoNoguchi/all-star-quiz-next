@@ -49,3 +49,39 @@ export type PlayerLeftData = {
   playerId: string
   playerCount: number
 }
+
+// New types for elimination system
+export type QuestionResult = {
+  questionId: string
+  correctAnswer: string
+  explanation?: string | undefined
+  eliminatedPlayerId: string | null
+  winnerId: string | null
+  correctAnswerers: string[]
+  incorrectAnswerers: string[]
+  survivors: string[]
+  isFinalQuestion: boolean
+}
+
+export type GameOverResult = {
+  winnerId: string
+  finalRanking: Array<{
+    playerId: string
+    playerName: string
+    rank: number
+    questionsAnswered: number
+  }>
+}
+
+export type TimerUpdate = {
+  remainingTime: number
+  isUrgent: boolean
+}
+
+export type PlayerAnswerSubmission = {
+  gameCode: string
+  playerId: string
+  questionId: string
+  selectedAnswer: string
+  responseTime: number
+}

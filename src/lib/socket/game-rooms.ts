@@ -16,6 +16,13 @@ export type GameRoom = {
   status: GameRoomStatus
   currentQuestion: number
   maxPlayers: number
+  // New fields for elimination system
+  activeAnswers: Map<string, import('../game/elimination-logic').PlayerAnswer>
+  questionTimer: NodeJS.Timeout | null
+  timerInterval: NodeJS.Timeout | null
+  eliminatedPlayers: Set<string>
+  currentQuestionId: string | null
+  totalQuestions: number
 }
 
 export type PlayerSession = {
@@ -37,7 +44,14 @@ export const createGameRoom = (code: string, adminId: string, maxPlayers: number
     players: new Set(),
     status: 'waiting',
     currentQuestion: 0,
-    maxPlayers
+    maxPlayers,
+    // Initialize new elimination system fields
+    activeAnswers: new Map(),
+    questionTimer: null,
+    timerInterval: null,
+    eliminatedPlayers: new Set(),
+    currentQuestionId: null,
+    totalQuestions: 10
   })
   
   return { success: true, gameCode: code }
