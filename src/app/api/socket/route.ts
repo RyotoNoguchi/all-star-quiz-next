@@ -19,7 +19,8 @@ import {
   startQuestionTimer,
   handleAnswerSubmission,
   clearQuestionTimers,
-  getActivePlayersCount
+  getActivePlayersCount,
+  processQuestionResults
 } from '@/lib/socket/elimination-handler'
 import type { PlayerAnswerSubmission } from '@/lib/socket/types'
 
@@ -186,6 +187,20 @@ export const POST = async (_request: NextRequest) => {
               activeAnswersCount: gameRoom.activeAnswers.size,
               totalActivePlayers: getActivePlayersCount(gameRoom)
             })
+
+            // Check if all active players have answered
+            const activePlayersCount = getActivePlayersCount(gameRoom)
+            if (gameRoom.activeAnswers.size >= activePlayersCount && gameRoom.currentQuestionData) {
+              // All players have answered - trigger immediate processing
+              processQuestionResults(
+                gameRoom,
+                gameRoom.currentQuestionData,
+                io!,
+                gameRoom.currentQuestionData.isFinalQuestion
+              ).catch(error => {
+                console.error('Error processing immediate question results:', error)
+              })
+            }
 
             console.log(`📝 Answer submitted: Player ${playerId} in game ${gameCode}`)
           } catch (error) {

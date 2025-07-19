@@ -9,27 +9,12 @@
 
 import { useState, useEffect, useCallback, type FC } from 'react'
 import { useSocket } from '@/lib/socket/context'
-// TODO: Socket event handlers will be implemented when socket context is ready
-// import { onSocketEvent, offSocketEvent, emitSocketEvent } from '@/lib/socket/context'
 import { CountdownTimer } from '@/components/game/countdown-timer'
 import { QuizButton } from '@/components/game/quiz-button'
 import { Button } from '@/components/ui/button'
 
 type QuizButtonState = 'default' | 'selected' | 'correct' | 'incorrect' | 'disabled'
 
-// TODO: Remove these temporary implementations when socket context is ready
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const onSocketEvent = (_event: string, _handler: (...args: any[]) => void) => {
-  // Temporary implementation
-}
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const offSocketEvent = (_event: string, _handler: (...args: any[]) => void) => {
-  // Temporary implementation
-}
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const emitSocketEvent = (_event: string, _data: any) => {
-  // Temporary implementation
-}
 
 type Props = {
   gameCode: string
@@ -108,8 +93,8 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
     }))
 
     // Send answer to server
-    if (quizState.currentQuestion) {
-      emitSocketEvent('submit-answer', {
+    if (quizState.currentQuestion && socket) {
+      socket.emit('submit-answer', {
         gameCode,
         playerId,
         questionId: quizState.currentQuestion.id,
@@ -117,7 +102,7 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
         responseTime
       })
     }
-  }, [gameCode, playerId, quizState.isAnswered, quizState.isEliminated, quizState.currentQuestion, answerStartTime])
+  }, [quizState.isAnswered, quizState.isEliminated, quizState.currentQuestion, answerStartTime, socket, gameCode, playerId])
 
   // Handle timer expiration
   const handleTimeExpired = useCallback(() => {
@@ -131,8 +116,8 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
       }))
 
       // Send timeout to server
-      if (quizState.currentQuestion) {
-        emitSocketEvent('submit-answer', {
+      if (quizState.currentQuestion && socket) {
+        socket.emit('submit-answer', {
           gameCode,
           playerId,
           questionId: quizState.currentQuestion.id,
@@ -169,7 +154,7 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
     if (!socket) return
 
     // Question events
-    onSocketEvent('next-question', handleNewQuestion)
+    socket.on('next-question', handleNewQuestion)
 
     // Timer updates from server
     const handleTimerUpdate = (data: { remainingTime: number; isUrgent: boolean }) => {
@@ -199,9 +184,9 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
         showResults: true,
         isEliminated: wasEliminated,
         isWinner: isWinner,
-        eliminationReason: wasEliminated 
-          ? (data.isFinalQuestion 
-            ? 'Game ended - you were not the fastest!' 
+        eliminationReason: wasEliminated
+          ? (data.isFinalQuestion
+            ? 'Game ended - you were not the fastest!'
             : 'You were eliminated for being the slowest correct responder!')
           : undefined,
         currentQuestion: prev.currentQuestion ? {
@@ -252,19 +237,19 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
       }))
     }
 
-    onSocketEvent('timer-update', handleTimerUpdate)
-    onSocketEvent('question-result', handleQuestionResult)
-    onSocketEvent('game-over', handleGameOver)
-    onSocketEvent('answer-received', handleAnswerReceived)
-    onSocketEvent('player-left', handlePlayerLeft)
+    socket.on('timer-update', handleTimerUpdate)
+    socket.on('question-result', handleQuestionResult)
+    socket.on('game-over', handleGameOver)
+    socket.on('answer-received', handleAnswerReceived)
+    socket.on('player-left', handlePlayerLeft)
 
     return () => {
-      offSocketEvent('next-question', handleNewQuestion)
-      offSocketEvent('timer-update', handleTimerUpdate)
-      offSocketEvent('question-result', handleQuestionResult)
-      offSocketEvent('game-over', handleGameOver)
-      offSocketEvent('answer-received', handleAnswerReceived)
-      offSocketEvent('player-left', handlePlayerLeft)
+      socket.off('next-question', handleNewQuestion)
+      socket.off('timer-update', handleTimerUpdate)
+      socket.off('question-result', handleQuestionResult)
+      socket.off('game-over', handleGameOver)
+      socket.off('answer-received', handleAnswerReceived)
+      socket.off('player-left', handlePlayerLeft)
     }
   }, [socket, handleNewQuestion, playerId])
 

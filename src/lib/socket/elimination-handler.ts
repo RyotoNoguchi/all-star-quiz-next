@@ -1,20 +1,21 @@
 /**
  * Elimination Handler for Socket.io
- * 
+ *
  * Handles question timing, answer collection, and elimination processing
  */
 
 import type { Server } from 'socket.io'
-import { 
+import {
   processAnswersAndDetermineElimination,
   createPlayerAnswer
 } from '../game/elimination-logic'
-import type { 
-  QuestionResult, 
-  GameOverResult, 
-  TimerUpdate 
+import type {
+  QuestionResult,
+  GameOverResult,
+  TimerUpdate
 } from './types'
 import type { GameRoom } from './game-rooms'
+
 
 const QUESTION_TIME_LIMIT = 10 // seconds
 
@@ -38,28 +39,40 @@ export const startQuestionTimer = (
   gameRoom.activeAnswers.clear()
   gameRoom.currentQuestionId = question.id
 
+  // Store current question data for elimination processing
+  gameRoom.currentQuestionData = {
+    id: question.id,
+    correctAnswer: question.correctAnswer,
+    ...(question.explanation && { explanation: question.explanation }),
+    isFinalQuestion
+  }
+
   let remainingTime = QUESTION_TIME_LIMIT
 
   // Start countdown timer
   gameRoom.timerInterval = setInterval(() => {
     remainingTime -= 1
-    
+
     const timerUpdate: TimerUpdate = {
       remainingTime,
       isUrgent: remainingTime <= 3
     }
-    
+
     io.to(gameRoom.code).emit('timer-update', timerUpdate)
-    
+
     if (remainingTime <= 0) {
       // Time's up - process elimination
-      processQuestionResults(gameRoom, question, io, isFinalQuestion)
+      processQuestionResults(gameRoom, question, io, isFinalQuestion).catch(error => {
+        console.error('Error processing question results:', error)
+      })
     }
   }, 1000)
 
   // Main timer that triggers elimination
   gameRoom.questionTimer = setTimeout(() => {
-    processQuestionResults(gameRoom, question, io, isFinalQuestion)
+    processQuestionResults(gameRoom, question, io, isFinalQuestion).catch(error => {
+      console.error('Error processing question results:', error)
+    })
   }, QUESTION_TIME_LIMIT * 1000)
 
   // Send initial timer update
@@ -72,7 +85,7 @@ export const startQuestionTimer = (
 /**
  * Process answers and determine elimination/winner
  */
-const processQuestionResults = (
+export const processQuestionResults = async (
   gameRoom: GameRoom,
   question: {
     id: string
@@ -81,7 +94,7 @@ const processQuestionResults = (
   },
   io: Server,
   isFinalQuestion = false
-): void => {
+): Promise<void> => {
   // Clear timers
   clearQuestionTimers(gameRoom)
 
@@ -95,6 +108,42 @@ const processQuestionResults = (
     question.correctAnswer,
     isFinalQuestion
   )
+
+  // TODO: Save all answers to database
+  // Note: This requires implementing full game session management with proper
+  // gameId, participantId, and gameQuestionId relationships
+  // For now, we'll skip database persistence and focus on real-time game logic
+  try {
+    if (eliminationResult.allAnswers.length > 0) {
+      console.log(`📊 Question results: ${eliminationResult.allAnswers.length} answers processed`)
+      console.log(`✅ Correct: ${eliminationResult.correctAnswerers.length}, ❌ Incorrect: ${eliminationResult.incorrectAnswerers.length}`)
+      if (eliminationResult.eliminatedPlayerId) {
+        console.log(`🚫 Eliminated: ${eliminationResult.eliminatedPlayerId}`)
+      }
+      if (eliminationResult.winnerId) {
+        console.log(`🏆 Winner: ${eliminationResult.winnerId}`)
+      }
+
+      // Database save will be implemented when game session management is complete
+      // await prisma.playerAnswer.createMany({
+      //   data: eliminationResult.allAnswers.map(answer => ({
+      //     gameId: gameRoom.gameSessionId, // Required field not yet available
+      //     participantId: answer.playerId, // Need to map player ID to participant ID
+      //     questionId: answer.questionId,
+      //     gameQuestionId: answer.gameQuestionId, // Required field not yet available
+      //     selectedAnswer: answer.selectedAnswer,
+      //     responseTime: answer.responseTime,
+      //     isCorrect: answer.isCorrect || false,
+      //     isTimeout: answer.selectedAnswer === '',
+      //     answeredAt: answer.serverTimestamp
+      //   })),
+      //   skipDuplicates: true
+      // })
+    }
+  } catch (error) {
+    console.error('Error processing question results:', error)
+    // Continue with game logic even if processing fails
+  }
 
   // Update eliminated players set
   if (eliminationResult.eliminatedPlayerId) {
@@ -191,19 +240,19 @@ export const handleAnswerSubmission = (
     selectedAnswer,
     responseTime
   )
-  
+
   gameRoom.activeAnswers.set(playerId, playerAnswer)
 
   // Check if all active players have answered
-  const activePlayers = Array.from(gameRoom.players).filter(
-    id => !gameRoom.eliminatedPlayers.has(id)
-  )
-  
-  if (gameRoom.activeAnswers.size >= activePlayers.length) {
-    // All players answered - this will trigger elimination processing
-    // The actual processing happens in the socket handler when it detects
-    // all answers are collected via the activeAnswersCount check
+  const activePlayersCount = getActivePlayersCount(gameRoom)
+
+  if (gameRoom.activeAnswers.size >= activePlayersCount) {
+    // All active players have answered - trigger immediate processing
     clearQuestionTimers(gameRoom)
+
+    // We need to trigger processQuestionResults here, but we need the question data
+    // This will be handled by the socket event handler that calls this function
+    // by checking if all answers are collected after this function returns
   }
 
   return true
@@ -217,7 +266,7 @@ export const clearQuestionTimers = (gameRoom: GameRoom): void => {
     clearTimeout(gameRoom.questionTimer)
     gameRoom.questionTimer = null
   }
-  
+
   if (gameRoom.timerInterval) {
     clearInterval(gameRoom.timerInterval)
     gameRoom.timerInterval = null

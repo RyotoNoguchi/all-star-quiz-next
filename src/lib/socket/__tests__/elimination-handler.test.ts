@@ -35,7 +35,8 @@ const createMockGameRoom = (): GameRoom => ({
   maxPlayers: 10,
   questionTimer: null,
   timerInterval: null,
-  totalQuestions: 10
+  totalQuestions: 10,
+  currentQuestionData: null
 })
 
 describe('Elimination Handler', () => {

@@ -23,6 +23,13 @@ export type GameRoom = {
   eliminatedPlayers: Set<string>
   currentQuestionId: string | null
   totalQuestions: number
+  // Current question details for elimination processing
+  currentQuestionData: {
+    id: string
+    correctAnswer: string
+    explanation?: string
+    isFinalQuestion: boolean
+  } | null
 }
 
 export type PlayerSession = {
@@ -51,7 +58,8 @@ export const createGameRoom = (code: string, adminId: string, maxPlayers: number
     timerInterval: null,
     eliminatedPlayers: new Set(),
     currentQuestionId: null,
-    totalQuestions: 10
+    totalQuestions: 10,
+    currentQuestionData: null
   })
   
   return { success: true, gameCode: code }
