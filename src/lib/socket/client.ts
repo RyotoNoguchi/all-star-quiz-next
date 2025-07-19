@@ -5,6 +5,7 @@
  */
 
 import { io, Socket } from 'socket.io-client'
+import type { Question, Player, AdminPayload } from './types'
 
 // Socket.io client instance
 let socket: Socket | null = null
@@ -87,6 +88,7 @@ export const cleanupSocket = (): void => {
   }
 }
 
+
 // Socket event types for type safety
 export interface GameEvents {
   // Player events
@@ -105,7 +107,7 @@ export interface GameEvents {
     action: 'start-game' | 'next-question' | 'end-game' | 'pause-game'
     gameCode: string
     adminId: string
-    payload?: any
+    payload?: AdminPayload
   }) => void
 
   // Server responses
@@ -145,7 +147,7 @@ export interface GameEvents {
 
   'next-question': (data: {
     questionNumber: number
-    question: any
+    question: Question
     timeLimit: number
   }) => void
 
@@ -158,8 +160,8 @@ export interface GameEvents {
   }) => void
 
   'game-ended': (data: {
-    winner: any
-    finalScores: any[]
+    winner: Player | null
+    finalScores: Player[]
   }) => void
 
   'game-paused': (data: {
@@ -195,7 +197,7 @@ export const onSocketEvent = <K extends keyof GameEvents>(
   listener: GameEvents[K]
 ): void => {
   if (socket) {
-    socket.on(event, listener)
+    socket.on(event as string, listener as (...args: unknown[]) => void)
   }
 }
 
@@ -208,9 +210,9 @@ export const offSocketEvent = <K extends keyof GameEvents>(
 ): void => {
   if (socket) {
     if (listener) {
-      socket.off(event, listener)
+      socket.off(event as string, listener as (...args: unknown[]) => void)
     } else {
-      socket.removeAllListeners(event)
+      socket.removeAllListeners(event as string)
     }
   }
 }

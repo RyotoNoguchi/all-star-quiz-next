@@ -439,26 +439,6 @@ export const gamesRouter = createTRPCRouter({
             },
             orderBy: { score: 'desc' },
           },
-          gameQuestions: {
-            where: {
-              questionOrder: { lte: game?.currentQuestionIndex || 0 },
-            },
-            include: {
-              question: {
-                select: {
-                  id: true,
-                  text: true,
-                  type: true,
-                  optionA: true,
-                  optionB: true,
-                  optionC: true,
-                  optionD: true,
-                  // Don't include correct answer for security
-                },
-              },
-            },
-            orderBy: { questionOrder: 'asc' },
-          },
         },
       })
 
@@ -469,9 +449,32 @@ export const gamesRouter = createTRPCRouter({
         })
       }
 
+      // Get game questions separately after we have the game data
+      const gameQuestions = await ctx.prisma.gameQuestion.findMany({
+        where: {
+          gameId: input.gameId,
+          questionOrder: { lte: game.currentQuestionIndex || 0 },
+        },
+        include: {
+          question: {
+            select: {
+              id: true,
+              text: true,
+              type: true,
+              optionA: true,
+              optionB: true,
+              optionC: true,
+              optionD: true,
+              // Don't include correct answer for security
+            },
+          },
+        },
+        orderBy: { questionOrder: 'asc' },
+      })
+
       // Check if user is participant
       const userParticipant = game.participants.find(
-        (p) => p.playerId === ctx.session.user.id
+        (p: { playerId: string }) => p.playerId === ctx.session.user.id
       )
 
       if (!userParticipant) {
@@ -489,7 +492,7 @@ export const gamesRouter = createTRPCRouter({
         totalQuestions: game.totalQuestions,
         questionTimeLimit: game.questionTimeLimit,
         participants: game.participants,
-        currentQuestion: game.gameQuestions[game.currentQuestionIndex - 1] || null,
+        currentQuestion: gameQuestions[game.currentQuestionIndex - 1] || null,
         userParticipant,
       }
     }),

@@ -9,6 +9,7 @@
 import { createContext, useContext, useEffect, useState, type FC, type ReactNode } from 'react'
 import { Socket } from 'socket.io-client'
 import { initializeSocket, connectSocket, disconnectSocket, cleanupSocket } from './client'
+import type { AdminPayload, GameStatus, JoinedGameData, PlayerJoinedData, PlayerLeftData } from './types'
 
 // Socket context type
 interface SocketContextType {
@@ -122,7 +123,7 @@ export const useGameRoom = () => {
     gameCode: null as string | null,
     playerCount: 0,
     maxPlayers: 20,
-    status: 'waiting' as 'waiting' | 'starting' | 'in_progress' | 'finished',
+    status: 'waiting' as GameStatus,
     isJoined: false
   })
 
@@ -157,7 +158,7 @@ export const useGameRoom = () => {
   useEffect(() => {
     if (!socket) return
 
-    const handleJoinedGame = (data: any) => {
+    const handleJoinedGame = (data: JoinedGameData) => {
       setGameState(prev => ({
         ...prev,
         gameCode: data.gameCode,
@@ -168,14 +169,14 @@ export const useGameRoom = () => {
       }))
     }
 
-    const handlePlayerJoined = (data: any) => {
+    const handlePlayerJoined = (data: PlayerJoinedData) => {
       setGameState(prev => ({
         ...prev,
         playerCount: data.playerCount
       }))
     }
 
-    const handlePlayerLeft = (data: any) => {
+    const handlePlayerLeft = (data: PlayerLeftData) => {
       setGameState(prev => ({
         ...prev,
         playerCount: data.playerCount
@@ -238,7 +239,7 @@ export const useGameAdmin = () => {
     action: 'start-game' | 'next-question' | 'end-game' | 'pause-game'
     gameCode: string
     adminId: string
-    payload?: any
+    payload?: AdminPayload
   }) => {
     if (socket && isConnected) {
       socket.emit('admin-action', data)
