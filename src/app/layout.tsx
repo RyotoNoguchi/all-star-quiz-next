@@ -1,5 +1,6 @@
 import { Inter } from 'next/font/google'
 import { type Metadata } from 'next'
+import { TRPCProvider } from '@/lib/trpc/provider'
 import '@/styles/globals.css'
 
 const inter = Inter({ 
@@ -23,7 +24,9 @@ const RootLayout = ({ children }: Props) => {
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased">
-        {children}
+        <TRPCProvider>
+          {children}
+        </TRPCProvider>
       </body>
     </html>
   )
