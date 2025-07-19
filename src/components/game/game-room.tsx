@@ -1,6 +1,6 @@
 /**
  * Game Room Component
- * 
+ *
  * Main game interface for All Star Quiz multiplayer sessions
  * Manages game states, player interactions, and real-time updates
  */
@@ -26,7 +26,7 @@ export const GameRoom: FC<Props> = ({ gameCode }) => {
   const { data: session } = useSession()
   const { isConnected, connect } = useSocket()
   const { gameState, joinGame, leaveGame } = useGameRoom()
-  
+
   const [playerName, setPlayerName] = useState('')
   const [hasJoined, setHasJoined] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -107,7 +107,7 @@ export const GameRoom: FC<Props> = ({ gameCode }) => {
             onLeave={handleLeaveGame}
           />
         )
-      
+
       case 'starting':
         return (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -118,7 +118,7 @@ export const GameRoom: FC<Props> = ({ gameCode }) => {
             </div>
           </div>
         )
-      
+
       case 'in_progress':
         return (
           <QuizGame
@@ -127,7 +127,7 @@ export const GameRoom: FC<Props> = ({ gameCode }) => {
             onLeave={handleLeaveGame}
           />
         )
-      
+
       case 'finished':
         return (
           <GameResults
@@ -136,7 +136,7 @@ export const GameRoom: FC<Props> = ({ gameCode }) => {
             onLeave={handleLeaveGame}
           />
         )
-      
+
       default:
         return (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -161,7 +161,7 @@ export const GameRoom: FC<Props> = ({ gameCode }) => {
 
       {/* Leave Game Button */}
       <div className="fixed top-4 right-4 z-10">
-        <Button 
+        <Button
           onClick={handleLeaveGame}
           variant="outline"
           size="sm"

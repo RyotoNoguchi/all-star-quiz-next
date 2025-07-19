@@ -8,10 +8,25 @@
 'use client'
 
 import { useState, useEffect, useCallback, type FC } from 'react'
-import { useSocket, onSocketEvent, offSocketEvent, emitSocketEvent } from '@/lib/socket/context'
+import { useSocket } from '@/lib/socket/context'
+// TODO: Socket event handlers will be implemented when socket context is ready
+// import { onSocketEvent, offSocketEvent, emitSocketEvent } from '@/lib/socket/context'
 import { CountdownTimer } from '@/components/game/countdown-timer'
 import { QuizButton } from '@/components/game/quiz-button'
 import { Button } from '@/components/ui/button'
+
+type QuizButtonState = 'default' | 'selected' | 'correct' | 'incorrect' | 'disabled'
+
+// TODO: Remove these temporary implementations when socket context is ready
+const onSocketEvent = (_event: string, _handler: (...args: any[]) => void) => {
+  // Temporary implementation
+}
+const offSocketEvent = (_event: string, _handler: (...args: any[]) => void) => {
+  // Temporary implementation
+}
+const emitSocketEvent = (_event: string, _data: any) => {
+  // Temporary implementation
+}
 
 type Props = {
   gameCode: string
@@ -125,6 +140,27 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
     }
   }, [gameCode, playerId, quizState.isAnswered, quizState.isEliminated, quizState.currentQuestion])
 
+  // Determine button state based on quiz state
+  const getButtonState = (choice: string): QuizButtonState => {
+    if (quizState.isEliminated || quizState.isAnswered) {
+      if (quizState.showResults) {
+        // Show correct/incorrect results
+        if (choice === quizState.currentQuestion?.correctAnswer) {
+          return 'correct'
+        } else if (choice === quizState.selectedAnswer) {
+          return 'incorrect'
+        } else {
+          return 'disabled'
+        }
+      } else if (choice === quizState.selectedAnswer) {
+        return 'selected'
+      } else {
+        return 'disabled'
+      }
+    }
+    return 'default'
+  }
+
   // Set up socket event listeners
   useEffect(() => {
     if (!socket) return
@@ -143,7 +179,7 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
     }
 
     // Game ended
-    const handleGameEnded = (data: { winner: any; finalScores: any[] }) => {
+    const handleGameEnded = (_data: { winner: any; finalScores: any[] }) => {
       setQuizState(prev => ({
         ...prev,
         showResults: true
@@ -184,6 +220,9 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
     } else if (quizState.timeLeft === 0 && !quizState.isAnswered) {
       handleTimeExpired()
     }
+    
+    // Return cleanup function for all code paths
+    return () => {}
   }, [quizState.timeLeft, quizState.isAnswered, quizState.isEliminated, handleTimeExpired])
 
   // Show elimination screen
@@ -260,35 +299,31 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
       <div className="w-full max-w-4xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <QuizButton
-            option="A"
+            choice="A"
             text={quizState.currentQuestion.optionA}
-            isSelected={quizState.selectedAnswer === 'A'}
-            isCorrect={quizState.showResults && quizState.currentQuestion.correctAnswer === 'A'}
-            isDisabled={quizState.isAnswered}
+            state={getButtonState('A')}
+            showResult={quizState.showResults}
             onClick={() => handleAnswerSelect('A')}
           />
           <QuizButton
-            option="B"
+            choice="B"
             text={quizState.currentQuestion.optionB}
-            isSelected={quizState.selectedAnswer === 'B'}
-            isCorrect={quizState.showResults && quizState.currentQuestion.correctAnswer === 'B'}
-            isDisabled={quizState.isAnswered}
+            state={getButtonState('B')}
+            showResult={quizState.showResults}
             onClick={() => handleAnswerSelect('B')}
           />
           <QuizButton
-            option="C"
+            choice="C"
             text={quizState.currentQuestion.optionC}
-            isSelected={quizState.selectedAnswer === 'C'}
-            isCorrect={quizState.showResults && quizState.currentQuestion.correctAnswer === 'C'}
-            isDisabled={quizState.isAnswered}
+            state={getButtonState('C')}
+            showResult={quizState.showResults}
             onClick={() => handleAnswerSelect('C')}
           />
           <QuizButton
-            option="D"
+            choice="D"
             text={quizState.currentQuestion.optionD}
-            isSelected={quizState.selectedAnswer === 'D'}
-            isCorrect={quizState.showResults && quizState.currentQuestion.correctAnswer === 'D'}
-            isDisabled={quizState.isAnswered}
+            state={getButtonState('D')}
+            showResult={quizState.showResults}
             onClick={() => handleAnswerSelect('D')}
           />
         </div>

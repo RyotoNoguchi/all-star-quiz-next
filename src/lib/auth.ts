@@ -45,6 +45,14 @@ export const authOptions: NextAuthOptions = {
       }
     },
     
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.id = user.id
+        token.role = user.role
+      }
+      return token
+    },
+    
     signIn: async ({ user, account, profile }) => {
       // Allow sign in
       return true

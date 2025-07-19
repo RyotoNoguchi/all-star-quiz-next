@@ -49,7 +49,7 @@ async function main() {
       correctAnswer: 'A',
       explanation: 'Tokyo has been the capital of Japan since 1868.',
       category: 'Geography',
-      tags: ['geography', 'japan', 'capitals'],
+      tags: 'geography,japan,capitals',
       createdBy: adminUser.id,
     },
     {
@@ -63,7 +63,7 @@ async function main() {
       correctAnswer: 'B',
       explanation: 'Mars appears red due to iron oxide (rust) on its surface.',
       category: 'Science',
-      tags: ['space', 'planets', 'astronomy'],
+      tags: 'space,planets,astronomy',
       createdBy: adminUser.id,
     },
     {
@@ -77,7 +77,7 @@ async function main() {
       correctAnswer: 'B',
       explanation: 'The blue whale can reach lengths of up to 100 feet and weigh up to 200 tons.',
       category: 'Biology',
-      tags: ['animals', 'mammals', 'ocean'],
+      tags: 'animals,mammals,ocean',
       createdBy: adminUser.id,
     },
     {
@@ -91,7 +91,7 @@ async function main() {
       correctAnswer: 'C',
       explanation: 'JavaScript was created by Brendan Eich in just 10 days while working at Netscape.',
       category: 'Technology',
-      tags: ['programming', 'javascript', 'history'],
+      tags: 'programming,javascript,history',
       createdBy: adminUser.id,
     },
     {
@@ -105,7 +105,7 @@ async function main() {
       correctAnswer: 'C',
       explanation: 'Au comes from the Latin word "aurum" meaning gold.',
       category: 'Chemistry',
-      tags: ['chemistry', 'elements', 'symbols'],
+      tags: 'chemistry,elements,symbols',
       createdBy: adminUser.id,
     },
     {
@@ -119,7 +119,7 @@ async function main() {
       correctAnswer: 'C',
       explanation: 'IBM was founded in 1911, making it the oldest among these tech giants.',
       category: 'Business History',
-      tags: ['business', 'technology', 'history', 'final'],
+      tags: 'business,technology,history,final',
       createdBy: adminUser.id,
     },
   ]

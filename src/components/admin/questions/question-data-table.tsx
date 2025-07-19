@@ -7,7 +7,8 @@
 'use client'
 
 import { type FC, useState } from 'react'
-import { api } from '@/lib/trpc/client'
+// TODO: tRPC integration
+// import { api } from '@/lib/trpc/client'
 import {
   Table,
   TableBody,
@@ -58,7 +59,8 @@ export const QuestionDataTable: FC<Props> = ({ onCreateQuestion, onEditQuestion 
   const [selectedDifficulty, setSelectedDifficulty] = useState<QuestionDifficulty | ''>('')
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'active' | 'inactive'>('all')
   
-  const pageSize = 10
+  // TODO: Implement pagination
+  // const pageSize = 10
 
   // Mock data for now - will be replaced with tRPC call
   const mockQuestions = [

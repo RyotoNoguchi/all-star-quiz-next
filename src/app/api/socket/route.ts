@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   return Response.json({ message: 'Socket.io server endpoint' })
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     // Initialize Socket.io server if not already done
     if (!io) {

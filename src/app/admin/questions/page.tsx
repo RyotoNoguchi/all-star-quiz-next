@@ -21,7 +21,7 @@ const AdminQuestionsPage: FC = () => {
     setIsFormOpen(true)
   }
 
-  const handleEditQuestion = (questionId: string) => {
+  const handleEditQuestion = (_questionId: string) => {
     // TODO: Fetch question data by ID and set to editingQuestion
     // For now, use mock data
     const mockQuestion: QuestionFormData = {

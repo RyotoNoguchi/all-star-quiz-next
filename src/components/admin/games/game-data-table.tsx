@@ -7,7 +7,8 @@
 'use client'
 
 import { type FC, useState } from 'react'
-import { api } from '@/lib/trpc/client'
+// TODO: tRPC integration
+// import { api } from '@/lib/trpc/client'
 import {
   Table,
   TableBody,
@@ -25,7 +26,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Eye, Edit, Trash2, Play, Pause, Square } from 'lucide-react'
+import { MoreHorizontal, Eye, Trash2, Play, Pause, Square } from 'lucide-react'
+// TODO: Add Edit icon when edit functionality is implemented
+// import { Edit } from 'lucide-react'
 
 type GameStatus = 'WAITING' | 'STARTING' | 'IN_PROGRESS' | 'PAUSED' | 'FINISHED' | 'CANCELLED'
 
@@ -49,7 +52,8 @@ const statusColors: Record<GameStatus, string> = {
 
 export const GameDataTable: FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 10
+  // TODO: Implement pagination
+  // const pageSize = 10
 
   // Fetch games data (with mock data for now)
   const mockGames = [

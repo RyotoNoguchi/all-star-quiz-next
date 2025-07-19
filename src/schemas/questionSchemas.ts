@@ -50,9 +50,9 @@ export const questionFormSchema = z.object({
     .max(300, '解説は300文字以内で入力してください')
     .optional(),
   
-  isActive: z.boolean().default(true),
+  isActive: z.boolean().optional().default(true),
   
-  type: z.enum(['NORMAL', 'FINAL']).default('NORMAL'),
+  type: z.enum(['NORMAL', 'FINAL']).optional().default('NORMAL'),
 })
 
 export type QuestionFormData = z.infer<typeof questionFormSchema>

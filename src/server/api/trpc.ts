@@ -9,7 +9,7 @@
  */
 
 import { initTRPC, TRPCError } from '@trpc/server'
-import { type CreateNextContextOptions } from '@trpc/server/adapters/next'
+import { type NextRequest } from 'next/server'
 import { type Session } from 'next-auth'
 import { getServerSession } from 'next-auth/next'
 import superjson from 'superjson'
@@ -32,11 +32,9 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
   }
 }
 
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const { req, res } = opts
-
+export const createTRPCContext = async (opts: { req: NextRequest }) => {
   // Get the session from the server using the getServerSession wrapper function
-  const session = await getServerSession(req, res, authOptions)
+  const session = await getServerSession(authOptions)
 
   return createInnerTRPCContext({
     session,

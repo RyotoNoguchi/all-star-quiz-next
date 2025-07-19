@@ -11,7 +11,7 @@ type Props = {
 export const CountdownTimer: FC<Props> = ({ 
   timeLeft,
   totalTime, 
-  isActive = true,
+  isActive: _isActive = true,
   className 
 }) => {
 

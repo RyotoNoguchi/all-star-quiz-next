@@ -5,10 +5,11 @@
  */
 
 import { type FC, type ReactNode } from 'react'
-import { redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+// TODO: 認証機能を再有効化する際に以下のimportを復元
+// import { redirect } from 'next/navigation'
+// import { getServerSession } from 'next-auth/next'
+// import { authOptions } from '@/lib/auth'
+// import { prisma } from '@/lib/prisma'
 
 type Props = {
   children: ReactNode

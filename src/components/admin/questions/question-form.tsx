@@ -58,7 +58,7 @@ export const QuestionForm: FC<Props> = ({
 }) => {
   const isEditMode = !!initialData
 
-  const form = useForm<QuestionFormData>({
+  const form = useForm({
     resolver: zodResolver(questionFormSchema),
     defaultValues: {
       text: '',
@@ -247,7 +247,7 @@ export const QuestionForm: FC<Props> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>難易度 *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || 'NORMAL'}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="難易度を選択" />
@@ -286,7 +286,7 @@ export const QuestionForm: FC<Props> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>問題種類</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || 'NORMAL'}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="問題種類を選択" />
@@ -341,7 +341,7 @@ export const QuestionForm: FC<Props> = ({
                   </div>
                   <FormControl>
                     <Switch
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>

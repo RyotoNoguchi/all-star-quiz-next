@@ -4,6 +4,8 @@
  * Main dashboard showing system overview and statistics
  */
 
+'use client'
+
 import { type FC } from 'react'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
 
