@@ -33,11 +33,11 @@ export const questionFormSchema = z.object({
     .max(100, '選択肢Dは100文字以内で入力してください'),
   
   correctAnswer: z.enum(['A', 'B', 'C', 'D'], {
-    required_error: '正解を選択してください',
+    message: '正解を選択してください',
   }),
   
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD'], {
-    required_error: '難易度を選択してください',
+    message: '難易度を選択してください',
   }),
   
   category: z
