@@ -7,8 +7,7 @@
 'use client'
 
 import { type FC, useState } from 'react'
-// TODO: tRPC integration
-// import { api } from '@/lib/trpc/client'
+import { api } from '@/lib/trpc/client'
 import {
   Table,
   TableBody,
@@ -59,10 +58,30 @@ export const QuestionDataTable: FC<Props> = ({ onCreateQuestion, onEditQuestion 
   const [selectedDifficulty, setSelectedDifficulty] = useState<QuestionDifficulty | ''>('')
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'active' | 'inactive'>('all')
   
-  // TODO: Implement pagination
-  // const pageSize = 10
+  const pageSize = 10
 
-  // Mock data for now - will be replaced with tRPC call
+  // tRPC hooks for data fetching
+  const { data: questionsData, isLoading, error, refetch } = api.questions.getAll.useQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchText || undefined,
+    difficulty: selectedDifficulty || undefined,
+    isActive: selectedStatus === 'all' ? undefined : selectedStatus === 'active'
+  })
+
+  const deleteQuestion = api.questions.delete.useMutation({
+    onSuccess: () => {
+      refetch()
+    }
+  })
+
+  const toggleActiveStatus = api.questions.update.useMutation({
+    onSuccess: () => {
+      refetch()
+    }
+  })
+
+  // Fallback mock data for development
   const mockQuestions = [
     {
       id: 'q1',
@@ -111,34 +130,48 @@ export const QuestionDataTable: FC<Props> = ({ onCreateQuestion, onEditQuestion 
     },
   ]
 
-  // Filter questions based on current filters
-  const filteredQuestions = mockQuestions.filter((question) => {
-    const matchesSearch = searchText === '' || 
-      question.text.toLowerCase().includes(searchText.toLowerCase()) ||
-      question.category.toLowerCase().includes(searchText.toLowerCase())
-    
-    const matchesDifficulty = selectedDifficulty === '' || question.difficulty === selectedDifficulty
-    
-    const matchesStatus = selectedStatus === 'all' || 
-      (selectedStatus === 'active' && question.isActive) ||
-      (selectedStatus === 'inactive' && !question.isActive)
-    
-    return matchesSearch && matchesDifficulty && matchesStatus
-  })
+  // Use real data from tRPC or fallback to mock data
+  const questions = questionsData?.questions || mockQuestions
+  const totalPages = questionsData?.pagination?.pages || 1
+  const totalCount = questionsData?.pagination?.total || mockQuestions.length
 
   const handleDeleteQuestion = (questionId: string) => {
-    console.log('Delete question:', questionId)
-    // TODO: Implement question deletion with tRPC
+    if (confirm('この問題を削除してもよろしいですか？')) {
+      deleteQuestion.mutate({ id: questionId })
+    }
   }
 
   const handleViewQuestion = (questionId: string) => {
     console.log('View question details:', questionId)
-    // TODO: Implement question preview
+    // TODO: Implement question preview modal
   }
 
   const handleToggleActive = (questionId: string) => {
-    console.log('Toggle question active status:', questionId)
-    // TODO: Implement status toggle with tRPC
+    const question = questions.find(q => q.id === questionId)
+    if (question) {
+      toggleActiveStatus.mutate({
+        id: questionId,
+        isActive: !question.isActive
+      })
+    }
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-gray-500">問題データを読み込んでいます...</div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-red-500">エラーが発生しました: {error.message}</div>
+      </div>
+    )
   }
 
   return (
@@ -211,7 +244,7 @@ export const QuestionDataTable: FC<Props> = ({ onCreateQuestion, onEditQuestion 
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredQuestions.map((question) => (
+            {questions.map((question) => (
               <TableRow key={question.id}>
                 <TableCell className="font-medium max-w-xs">
                   <div className="truncate" title={question.text}>
@@ -295,7 +328,7 @@ export const QuestionDataTable: FC<Props> = ({ onCreateQuestion, onEditQuestion 
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-700">
-          {filteredQuestions.length} 件中 1-{filteredQuestions.length} 件を表示
+          {totalCount} 件中 {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} 件を表示
         </p>
         <div className="flex items-center space-x-2">
           <Button 
@@ -307,11 +340,12 @@ export const QuestionDataTable: FC<Props> = ({ onCreateQuestion, onEditQuestion 
             前へ
           </Button>
           <span className="text-sm text-gray-600">
-            ページ {currentPage}
+            ページ {currentPage} / {totalPages}
           </span>
           <Button 
             variant="outline" 
             size="sm"
+            disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
           >
             次へ

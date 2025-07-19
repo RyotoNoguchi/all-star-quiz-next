@@ -10,57 +10,29 @@ import { type FC, useState } from 'react'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
 import { QuestionDataTable } from '@/components/admin/questions/question-data-table'
 import { QuestionForm } from '@/components/admin/questions/question-form'
-import { type QuestionFormData } from '@/schemas/questionSchemas'
 
 const AdminQuestionsPage: FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingQuestion, setEditingQuestion] = useState<QuestionFormData | null>(null)
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null)
 
   const handleCreateQuestion = () => {
-    setEditingQuestion(null)
+    setEditingQuestionId(null)
     setIsFormOpen(true)
   }
 
-  const handleEditQuestion = (_questionId: string) => {
-    // TODO: Fetch question data by ID and set to editingQuestion
-    // For now, use mock data
-    const mockQuestion: QuestionFormData = {
-      text: '日本の首都はどこですか？',
-      optionA: '東京',
-      optionB: '大阪',
-      optionC: '京都',
-      optionD: '名古屋',
-      correctAnswer: 'A',
-      difficulty: 'EASY',
-      category: '地理',
-      explanation: '東京は日本の首都で、政治・経済の中心地です。',
-      isActive: true,
-      type: 'NORMAL',
-    }
-    setEditingQuestion(mockQuestion)
+  const handleEditQuestion = (questionId: string) => {
+    setEditingQuestionId(questionId)
     setIsFormOpen(true)
   }
 
   const handleCloseForm = () => {
     setIsFormOpen(false)
-    setEditingQuestion(null)
+    setEditingQuestionId(null)
   }
 
-  const handleSubmitForm = (data: QuestionFormData) => {
-    console.log('Form submitted:', data)
-    // TODO: Implement tRPC mutation for create/update
-    
-    if (editingQuestion) {
-      console.log('Updating question...')
-      // TODO: updateQuestion.mutate({ id: questionId, ...data })
-    } else {
-      console.log('Creating question...')
-      // TODO: createQuestion.mutate(data)
-    }
-    
-    // For now, just close the form
-    setIsFormOpen(false)
-    setEditingQuestion(null)
+  const handleFormSuccess = () => {
+    // Form component handles the actual tRPC mutations
+    console.log('Form operation successful')
   }
 
   return (
@@ -87,9 +59,8 @@ const AdminQuestionsPage: FC = () => {
         <QuestionForm
           isOpen={isFormOpen}
           onClose={handleCloseForm}
-          onSubmit={handleSubmitForm}
-          initialData={editingQuestion}
-          isPending={false}
+          onSuccess={handleFormSuccess}
+          questionId={editingQuestionId}
         />
       </div>
     </AdminLayout>

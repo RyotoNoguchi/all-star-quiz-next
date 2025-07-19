@@ -9,6 +9,7 @@
 import { type FC, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { api } from '@/lib/trpc/client'
 import { type QuestionFormData, questionFormSchema } from '@/schemas/questionSchemas'
 import {
   Dialog,
@@ -44,19 +45,38 @@ import { Label } from '@/components/ui/label'
 type Props = {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: QuestionFormData) => void
-  initialData?: QuestionFormData | null
-  isPending: boolean
+  onSuccess?: () => void
+  questionId?: string | null
 }
 
 export const QuestionForm: FC<Props> = ({
   isOpen,
   onClose,
-  onSubmit,
-  initialData,
-  isPending,
+  onSuccess,
+  questionId,
 }) => {
-  const isEditMode = !!initialData
+  const isEditMode = !!questionId
+
+  // tRPC hooks
+  const { data: questionData } = api.questions.getById.useQuery(
+    { id: questionId! },
+    { enabled: !!questionId }
+  )
+
+  const createQuestion = api.questions.create.useMutation({
+    onSuccess: () => {
+      form.reset()
+      onClose()
+      onSuccess?.()
+    }
+  })
+
+  const updateQuestion = api.questions.update.useMutation({
+    onSuccess: () => {
+      onClose()
+      onSuccess?.()
+    }
+  })
 
   const form = useForm({
     resolver: zodResolver(questionFormSchema),
@@ -75,11 +95,23 @@ export const QuestionForm: FC<Props> = ({
     },
   })
 
-  // Reset form when initialData changes
+  // Reset form when questionData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
+    if (questionData) {
+      form.reset({
+        text: questionData.text,
+        optionA: questionData.optionA,
+        optionB: questionData.optionB,
+        optionC: questionData.optionC,
+        optionD: questionData.optionD,
+        correctAnswer: questionData.correctAnswer as 'A' | 'B' | 'C' | 'D',
+        difficulty: questionData.difficulty,
+        category: questionData.category || '',
+        explanation: questionData.explanation || '',
+        isActive: questionData.isActive,
+        type: questionData.type,
+      })
+    } else if (!isEditMode) {
       form.reset({
         text: '',
         optionA: '',
@@ -94,11 +126,20 @@ export const QuestionForm: FC<Props> = ({
         type: 'NORMAL',
       })
     }
-  }, [initialData, form])
+  }, [questionData, form, isEditMode])
 
   const handleSubmit = (data: QuestionFormData) => {
-    onSubmit(data)
+    if (isEditMode && questionId) {
+      updateQuestion.mutate({
+        id: questionId,
+        ...data
+      })
+    } else {
+      createQuestion.mutate(data)
+    }
   }
+
+  const isPending = createQuestion.isPending || updateQuestion.isPending
 
   const handleClose = () => {
     if (!isPending) {
