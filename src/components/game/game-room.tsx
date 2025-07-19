@@ -29,7 +29,7 @@ export const GameRoom: FC<Props> = ({ gameCode }) => {
 
   const [playerName, setPlayerName] = useState('')
   const [hasJoined, setHasJoined] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, _setError] = useState<string | null>(null)
 
   // Auto-connect socket when component mounts
   useEffect(() => {

@@ -1,6 +1,6 @@
 /**
  * Game Results Component
- * 
+ *
  * Shows final game results, winner, and player rankings
  * Provides options to start a new game or return to home
  */
@@ -16,7 +16,7 @@ type Props = {
   onLeave: () => void
 }
 
-export const GameResults: FC<Props> = ({ gameCode, onNewGame, onLeave }) => {
+export const GameResults: FC<Props> = ({ gameCode: _gameCode, onNewGame, onLeave }) => {
   // Mock data for demonstration
   // In a real implementation, this would come from the game state
   const mockResults = {
@@ -55,7 +55,7 @@ export const GameResults: FC<Props> = ({ gameCode, onNewGame, onLeave }) => {
         <p className="text-white/70 mb-6">
           おめでとうございます！見事に最後まで生き残りました！
         </p>
-        
+
         {/* Winner Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="glass-card rounded-lg p-4 bg-white/5">
@@ -86,7 +86,7 @@ export const GameResults: FC<Props> = ({ gameCode, onNewGame, onLeave }) => {
         </h3>
         <div className="space-y-3">
           {mockResults.rankings.map((player, index) => (
-            <div 
+            <div
               key={player.id}
               className={`flex items-center justify-between p-3 rounded-lg ${
                 index === 0 ? 'bg-yellow-500/20' :

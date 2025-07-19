@@ -1,6 +1,6 @@
 /**
  * Quiz Game Component
- * 
+ *
  * Main quiz interface with questions, timer, and answer buttons
  * Handles real-time quiz gameplay and elimination mechanics
  */
@@ -18,12 +18,15 @@ import { Button } from '@/components/ui/button'
 type QuizButtonState = 'default' | 'selected' | 'correct' | 'incorrect' | 'disabled'
 
 // TODO: Remove these temporary implementations when socket context is ready
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const onSocketEvent = (_event: string, _handler: (...args: any[]) => void) => {
   // Temporary implementation
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const offSocketEvent = (_event: string, _handler: (...args: any[]) => void) => {
   // Temporary implementation
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const emitSocketEvent = (_event: string, _data: any) => {
   // Temporary implementation
 }
@@ -45,6 +48,19 @@ type Question = {
   explanation?: string
 }
 
+type GameEndData = {
+  winner: {
+    id: string
+    name: string
+  } | null
+  finalScores: Array<{
+    playerId: string
+    playerName: string
+    score: number
+    rank: number
+  }>
+}
+
 type QuizState = {
   currentQuestion: Question | null
   questionNumber: number
@@ -59,7 +75,7 @@ type QuizState = {
 
 export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
   const { socket } = useSocket()
-  
+
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: null,
     questionNumber: 0,
@@ -97,7 +113,7 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
     if (quizState.isAnswered || quizState.isEliminated) return
 
     const responseTime = (Date.now() - answerStartTime) / 1000
-    
+
     setQuizState(prev => ({
       ...prev,
       isAnswered: true,
@@ -120,7 +136,7 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
   const handleTimeExpired = useCallback(() => {
     if (!quizState.isAnswered && !quizState.isEliminated) {
       const responseTime = 10 // Max time
-      
+
       setQuizState(prev => ({
         ...prev,
         isAnswered: true,
@@ -179,7 +195,7 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
     }
 
     // Game ended
-    const handleGameEnded = (_data: { winner: any; finalScores: any[] }) => {
+    const handleGameEnded = (_data: GameEndData) => {
       setQuizState(prev => ({
         ...prev,
         showResults: true
@@ -220,7 +236,7 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
     } else if (quizState.timeLeft === 0 && !quizState.isAnswered) {
       handleTimeExpired()
     }
-    
+
     // Return cleanup function for all code paths
     return () => {}
   }, [quizState.timeLeft, quizState.isAnswered, quizState.isEliminated, handleTimeExpired])
@@ -269,7 +285,7 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
               {quizState.questionNumber} / {quizState.totalQuestions}
             </span>
           </div>
-          
+
           <div className="glass-card rounded-lg px-4 py-2">
             <span className="text-white/70 text-sm">残り </span>
             <span className="text-white font-bold">
@@ -333,8 +349,8 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
       {quizState.isAnswered && (
         <div className="mt-6 glass-card rounded-lg p-4 text-center">
           <p className="text-white/70">
-            {quizState.selectedAnswer 
-              ? `回答: ${quizState.selectedAnswer}` 
+            {quizState.selectedAnswer
+              ? `回答: ${quizState.selectedAnswer}`
               : '時間切れ'
             }
           </p>

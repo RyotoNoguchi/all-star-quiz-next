@@ -22,6 +22,15 @@ const eslintConfig = [
           unnamedComponents: 'arrow-function',
         },
       ],
+      // Allow unused variables with underscore prefix
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
     },
   },
 ]
