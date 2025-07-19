@@ -31,6 +31,7 @@ npm run start           # Start production server
 
 # Code Quality
 npm run lint            # Run ESLint
+npm run lint:check      # Run ESLint quietly (for automation)
 npm run lint:fix        # Fix ESLint errors automatically
 npm run format          # Format code with Prettier
 npm run format:check    # Check formatting without changes
@@ -40,6 +41,10 @@ npm run type-check      # TypeScript type checking
 npm run test            # Run tests in watch mode
 npm run test:run        # Run tests once
 npm run test:coverage   # Run tests with coverage report
+
+# Arrow Function Compliance
+npm run check:arrow-functions                        # Check for function declaration violations
+grep -rn '^function [A-Z]' src/components/ src/app/ # Manual detection
 ```
 
 ## Component Architecture
@@ -88,9 +93,22 @@ Based on `.kiro/specs/` documentation:
 ## Coding Standards
 
 ### React Component Rules
-- **Arrow Functions**: ALL React components must be implemented as arrow functions (not function declarations)
+
+#### 🚨 CRITICAL: Arrow Function Rule
+- **Arrow Functions**: ALL React components MUST be implemented as arrow functions (not function declarations)
   - This applies to: `src/components/`, `src/components/ui/`, `src/components/layout/`, `src/components/game/`, `src/app/` and all subdirectories
-  - No exceptions: Every React component must use arrow function syntax
+  - **ZERO EXCEPTIONS**: Every React component must use arrow function syntax
+  - **Enforcement**: ESLint will block commits with function declarations
+  - **Pre-commit Hook**: Automatically checks for violations before commit
+
+#### Automated Prevention Measures
+- **ESLint Rules**: 
+  - `func-style: ['error', 'expression']` - Prevents function declarations
+  - `react/function-component-definition` - Enforces arrow functions for React components
+- **Pre-commit Hook**: Automatically scans for `function [A-Z]` patterns
+- **Lint Check**: `npm run lint:check` verifies compliance
+
+#### Component Implementation Rules
 - **Props Type Definition**: Always define props as `Props` type with React.FC
 - **One Component Per File**: Each file must contain exactly ONE React component
   - If multiple components are needed, create appropriate directory structure and separate files

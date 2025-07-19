@@ -24,8 +24,19 @@ const eslintConfig = [
           unnamedComponents: 'arrow-function',
         },
       ],
+      // Prevent function declarations with capital letters (likely React components)
+      'func-style': [
+        'error',
+        'expression',
+        {
+          allowArrowFunctions: true,
+        },
+      ],
+      // Additional rules to enforce coding standards
       'prefer-const': 'error',
       'no-var': 'error',
+      'prefer-arrow-callback': 'error',
+      'arrow-body-style': ['error', 'as-needed'],
     },
   },
 ]

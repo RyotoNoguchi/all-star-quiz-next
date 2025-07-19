@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:check": "next lint --quiet",
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -20,7 +21,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "check:arrow-functions": "node scripts/check-arrow-functions.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
