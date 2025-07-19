@@ -1,6 +1,6 @@
 /**
  * User Button Component
- * 
+ *
  * Displays user profile with dropdown menu for signed-in users
  * Shows sign-in button for anonymous users
  */
@@ -63,7 +63,7 @@ export const UserButton: FC = () => {
           )}
         </Button>
       </DropdownMenuTrigger>
-      
+
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <div className="flex items-center justify-start gap-2 p-2">
           <div className="flex flex-col space-y-1 leading-none">
@@ -77,29 +77,29 @@ export const UserButton: FC = () => {
             )}
           </div>
         </div>
-        
+
         <DropdownMenuSeparator />
-        
+
         <DropdownMenuItem asChild>
           <Link href="/profile">
             Profile
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem asChild>
           <Link href="/games">
             My Games
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem asChild>
           <Link href="/leaderboard">
             Leaderboard
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuSeparator />
-        
+
         <DropdownMenuItem
           className="cursor-pointer text-red-600 focus:text-red-600"
           onSelect={handleSignOut}
