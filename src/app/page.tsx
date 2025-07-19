@@ -2,6 +2,7 @@ import { type FC } from 'react'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Button } from '@/components/ui/button'
 import { UserButton } from '@/components/auth/user-button'
+import { SocketStatus } from '@/components/debug/socket-status'
 
 const HomePage: FC = () => {
   return (
@@ -76,6 +77,9 @@ const HomePage: FC = () => {
           </p>
         </div>
       </div>
+      
+      {/* Development Socket Status */}
+      <SocketStatus />
     </MainLayout>
   )
 }
