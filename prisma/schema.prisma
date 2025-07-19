@@ -1,0 +1,384 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// NextAuth.js Required Models
+// ============================================================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================================================
+// User Management
+// ============================================================================
+
+enum UserRole {
+  PLAYER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(PLAYER)
+  
+  // Game statistics
+  gamesPlayed   Int @default(0)
+  gamesWon      Int @default(0)
+  totalScore    Int @default(0)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  accounts       Account[]
+  sessions       Session[]
+  gameParticipants GameParticipant[]
+  adminSessions    GameSession[] @relation("AdminSessions")
+
+  @@map("users")
+}
+
+// ============================================================================
+// Question System
+// ============================================================================
+
+enum QuestionType {
+  NORMAL      // Regular elimination question
+  FINAL       // Final question (fastest wins)
+}
+
+enum QuestionDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Question {
+  id         String             @id @default(cuid())
+  text       String
+  type       QuestionType       @default(NORMAL)
+  difficulty QuestionDifficulty @default(MEDIUM)
+  
+  // Multiple choice options
+  optionA String
+  optionB String
+  optionC String
+  optionD String
+  
+  // Correct answer (A, B, C, or D)
+  correctAnswer String
+  
+  // Optional explanation for the answer
+  explanation String?
+  
+  // Question metadata
+  category    String?
+  tags        String[] // Array of tags for categorization
+  isActive    Boolean  @default(true)
+  usageCount  Int      @default(0) // How many times used
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   // User ID of creator
+
+  // Relations
+  gameQuestions GameQuestion[]
+  playerAnswers PlayerAnswer[]
+
+  @@index([type, difficulty])
+  @@index([category])
+  @@index([isActive])
+  @@map("questions")
+}
+
+// ============================================================================
+// Game Session Management
+// ============================================================================
+
+enum GameStatus {
+  WAITING     // Waiting for players to join
+  STARTING    // Countdown before first question
+  IN_PROGRESS // Game is active
+  PAUSED      // Game temporarily paused
+  FINISHED    // Game completed
+  CANCELLED   // Game cancelled
+}
+
+model GameSession {
+  id          String     @id @default(cuid())
+  name        String     // Game session name
+  code        String     @unique // 6-digit join code
+  status      GameStatus @default(WAITING)
+  adminId     String     // Game administrator
+  
+  // Game settings
+  maxPlayers        Int     @default(20)
+  questionTimeLimit Int     @default(10) // seconds
+  isPublic          Boolean @default(true)
+  
+  // Game progress
+  currentQuestionIndex Int @default(0)
+  totalQuestions       Int @default(0)
+  
+  // Winner information
+  winnerId    String?
+  winnerScore Int?
+  
+  // Timestamps
+  startedAt   DateTime?
+  endedAt     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  admin         User                @relation("AdminSessions", fields: [adminId], references: [id])
+  participants  GameParticipant[]
+  gameQuestions GameQuestion[]
+  playerAnswers PlayerAnswer[]
+
+  @@index([code])
+  @@index([status])
+  @@index([adminId])
+  @@map("game_sessions")
+}
+
+// ============================================================================
+// Game Participation
+// ============================================================================
+
+enum ParticipantStatus {
+  ACTIVE      // Still in the game
+  ELIMINATED  // Eliminated from game
+  DISCONNECTED // Disconnected but could rejoin
+  WINNER      // Won the game
+}
+
+model GameParticipant {
+  id        String            @id @default(cuid())
+  gameId    String
+  playerId  String
+  status    ParticipantStatus @default(ACTIVE)
+  
+  // Performance tracking
+  score           Int @default(0)
+  correctAnswers  Int @default(0)
+  incorrectAnswers Int @default(0)
+  eliminatedAt    DateTime?
+  eliminatedRound Int? // Which question round they were eliminated
+  
+  // Timing statistics
+  averageResponseTime Float? // in seconds
+  fastestResponse     Float? // in seconds
+  slowestResponse     Float? // in seconds
+  
+  // Timestamps
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  game   GameSession    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player User           @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  answers PlayerAnswer[]
+
+  @@unique([gameId, playerId])
+  @@index([gameId, status])
+  @@index([playerId])
+  @@map("game_participants")
+}
+
+// ============================================================================
+// Game Questions and Answers
+// ============================================================================
+
+model GameQuestion {
+  id         String @id @default(cuid())
+  gameId     String
+  questionId String
+  
+  // Question order and timing
+  questionOrder Int      // Order in the game (1, 2, 3, etc.)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  
+  // Question results
+  totalAnswers    Int @default(0)
+  correctAnswers  Int @default(0)
+  incorrectAnswers Int @default(0)
+  timeoutAnswers  Int @default(0)
+  
+  // Statistics
+  averageResponseTime Float? // in seconds
+  fastestResponseTime Float? // in seconds
+  slowestResponseTime Float? // in seconds
+
+  // Relations
+  game     GameSession    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  question Question       @relation(fields: [questionId], references: [id])
+  answers  PlayerAnswer[]
+
+  @@unique([gameId, questionOrder])
+  @@index([gameId])
+  @@index([questionId])
+  @@map("game_questions")
+}
+
+model PlayerAnswer {
+  id             String @id @default(cuid())
+  gameId         String
+  participantId  String
+  questionId     String
+  gameQuestionId String
+  
+  // Answer details
+  selectedAnswer String?   // A, B, C, D, or null for timeout
+  isCorrect      Boolean
+  isTimeout      Boolean   @default(false)
+  
+  // Timing information (critical for elimination logic)
+  responseTime   Float?    // Time taken to answer in seconds
+  answeredAt     DateTime? // When the answer was submitted
+  
+  // Elimination information
+  wasEliminated     Boolean @default(false)
+  eliminationReason String? // "wrong_answer", "timeout", "slowest_correct", "fastest_incorrect"
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  // Relations
+  game         GameSession     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  participant  GameParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  question     Question        @relation(fields: [questionId], references: [id])
+  gameQuestion GameQuestion    @relation(fields: [gameQuestionId], references: [id], onDelete: Cascade)
+
+  @@unique([participantId, gameQuestionId])
+  @@index([gameId, questionId])
+  @@index([participantId])
+  @@index([isCorrect, responseTime])
+  @@map("player_answers")
+}
+
+// ============================================================================
+// Game Statistics and Analytics
+// ============================================================================
+
+model GameStatistics {
+  id     String @id @default(cuid())
+  gameId String @unique
+  
+  // Game overview
+  totalPlayers      Int
+  questionsAsked    Int
+  gameDuration     Int // in seconds
+  
+  // Performance metrics
+  averageResponseTime    Float?
+  fastestOverallResponse Float?
+  slowestOverallResponse Float?
+  
+  // Answer distribution
+  totalCorrectAnswers   Int
+  totalIncorrectAnswers Int
+  totalTimeouts         Int
+  
+  // Question difficulty analysis
+  easyQuestionsAsked   Int @default(0)
+  mediumQuestionsAsked Int @default(0)
+  hardQuestionsAsked   Int @default(0)
+  
+  // Elimination analysis
+  eliminatedByWrongAnswer Int @default(0)
+  eliminatedByTimeout     Int @default(0)
+  eliminatedBySlowest     Int @default(0)
+  
+  // Timestamps
+  calculatedAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([gameId])
+  @@map("game_statistics")
+}
+
+// ============================================================================
+// System Configuration
+// ============================================================================
+
+model SystemSettings {
+  id    String @id @default("system")
+  
+  // Default game settings
+  defaultQuestionTimeLimit Int     @default(10)
+  defaultMaxPlayers        Int     @default(20)
+  minimumPlayers           Int     @default(2)
+  maximumPlayers           Int     @default(50)
+  
+  // Question management
+  questionsPerGame         Int     @default(10)
+  finalQuestionThreshold   Int     @default(3) // When to trigger final question
+  
+  // System flags
+  maintenanceMode          Boolean @default(false)
+  allowPublicGames         Boolean @default(true)
+  allowGuestPlayers        Boolean @default(false)
+  
+  // Rate limiting
+  maxGamesPerHour          Int     @default(5)
+  maxQuestionsPerDay       Int     @default(100)
+  
+  // Timestamps
+  updatedAt DateTime @updatedAt
+  
+  @@map("system_settings")
+}
