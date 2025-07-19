@@ -8,27 +8,16 @@
 import { NextRequest } from 'next/server'
 import { Server } from 'socket.io'
 import { createServer } from 'node:http'
+import { 
+  gameRooms, 
+  playerSessions, 
+  updatePlayerSession, 
+  removePlayerSession, 
+  getPlayerSession 
+} from '@/lib/socket/game-rooms'
 
 // Socket.io server instance
 let io: Server | undefined
-
-// Game room management
-const gameRooms = new Map<string, {
-  code: string
-  adminId: string
-  players: Set<string>
-  status: 'waiting' | 'starting' | 'in_progress' | 'finished'
-  currentQuestion: number
-  maxPlayers: number
-}>()
-
-// Player management
-const playerSessions = new Map<string, {
-  playerId: string
-  gameCode: string | null
-  socketId: string
-  isActive: boolean
-}>()
 
 export const GET = async (request: NextRequest) => {
   const { searchParams } = new URL(request.url)
@@ -93,7 +82,7 @@ export const POST = async (_request: NextRequest) => {
             gameRoom.players.add(playerId)
             
             // Update player session
-            playerSessions.set(socket.id, {
+            updatePlayerSession(socket.id, {
               playerId,
               gameCode,
               socketId: socket.id,
@@ -141,7 +130,7 @@ export const POST = async (_request: NextRequest) => {
             }
 
             // Clean up player session
-            playerSessions.delete(socket.id)
+            removePlayerSession(socket.id)
             
             console.log(`👤 Player ${playerId} left game ${gameCode}`)
           } catch (error) {
@@ -249,7 +238,7 @@ export const POST = async (_request: NextRequest) => {
 
         // Handle disconnection
         socket.on('disconnect', () => {
-          const playerSession = playerSessions.get(socket.id)
+          const playerSession = getPlayerSession(socket.id)
           if (playerSession && playerSession.gameCode) {
             const gameRoom = gameRooms.get(playerSession.gameCode)
             if (gameRoom) {
@@ -263,7 +252,7 @@ export const POST = async (_request: NextRequest) => {
             }
           }
           
-          playerSessions.delete(socket.id)
+          removePlayerSession(socket.id)
           console.log(`🔌 User disconnected: ${socket.id}`)
         })
       })
@@ -288,38 +277,3 @@ export const POST = async (_request: NextRequest) => {
   }
 }
 
-// Export game room management functions for tRPC integration
-export const createGameRoom = (code: string, adminId: string, maxPlayers: number = 20) => {
-  gameRooms.set(code, {
-    code,
-    adminId,
-    players: new Set(),
-    status: 'waiting',
-    currentQuestion: 0,
-    maxPlayers
-  })
-  
-  return { success: true, gameCode: code }
-}
-
-export const getGameRoom = (code: string) => {
-  return gameRooms.get(code)
-}
-
-export const deleteGameRoom = (code: string) => {
-  const gameRoom = gameRooms.get(code)
-  if (gameRoom) {
-    // Notify all players that the game room is being deleted
-    io?.to(code).emit('game-room-deleted', {
-      message: 'Game room has been closed by the administrator'
-    })
-    
-    // Remove all players from the room
-    gameRoom.players.clear()
-    gameRooms.delete(code)
-    
-    return { success: true }
-  }
-  
-  return { success: false, error: 'Game room not found' }
-}

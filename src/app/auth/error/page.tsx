@@ -11,9 +11,9 @@ import { MainLayout } from '@/components/layout/main-layout'
 import { Button } from '@/components/ui/button'
 
 type Props = {
-  searchParams: {
+  searchParams: Promise<{
     error?: string
-  }
+  }>
 }
 
 const getErrorMessage = (error?: string): string => {
@@ -47,8 +47,9 @@ const getErrorMessage = (error?: string): string => {
   }
 }
 
-const AuthErrorPage: FC<Props> = ({ searchParams }) => {
-  const errorMessage = getErrorMessage(searchParams.error)
+const AuthErrorPage: FC<Props> = async ({ searchParams }) => {
+  const resolvedSearchParams = await searchParams
+  const errorMessage = getErrorMessage(resolvedSearchParams.error)
 
   return (
     <MainLayout>

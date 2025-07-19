@@ -29,13 +29,17 @@ npm run dev              # Start dev server with Turbopack
 npm run build           # Production build
 npm run start           # Start production server
 
-# Code Quality
+# Code Quality & Verification
 npm run lint            # Run ESLint
 npm run lint:check      # Run ESLint quietly (for automation)
 npm run lint:fix        # Fix ESLint errors automatically
 npm run format          # Format code with Prettier
 npm run format:check    # Check formatting without changes
 npm run type-check      # TypeScript type checking
+
+# 🚨 MANDATORY Post-Implementation Verification
+npm run verify          # Complete verification suite (future)
+npm run type-check && npm run lint:check && npm run build  # Manual verification sequence
 
 # Testing
 npm run test            # Run tests in watch mode
@@ -161,18 +165,51 @@ export default HomePage
 
 ## Development Notes
 
-### Post-Implementation Verification
-**IMPORTANT**: After implementing any changes, ALWAYS verify the application works correctly using Playwright MCP:
-1. Start the development server with `npm run dev`
-2. Navigate to the application using Playwright MCP browser tools
-3. Test the implemented functionality through browser interactions
-4. Take screenshots to document the working state
-5. If errors or unexpected behavior are found:
-   - Analyze the issue through browser console messages and network requests
-   - Identify the root cause in the code
-   - Fix the implementation immediately
-   - Re-test with Playwright MCP to confirm the fix
-   - Only consider the task complete when the application works as expected
+### 🚨 MANDATORY Post-Implementation Verification Rules
+
+**CRITICAL REQUIREMENT**: Having compilation errors after implementation completion is a serious problem. These verification steps are **MANDATORY** and must be executed after EVERY implementation to prevent regression.
+
+#### 1. **Immediate Compilation Verification (REQUIRED)**
+**MUST BE RUN IMMEDIATELY** after any code changes:
+```bash
+npm run type-check     # TypeScript compilation check - MUST pass
+npm run lint:check     # ESLint validation - MUST pass  
+npm run build          # Production build test - MUST succeed
+```
+
+**⚠️ RULE**: If ANY of these commands fail, the implementation is **INCOMPLETE** and must be fixed immediately.
+
+#### 2. **Arrow Function Compliance Check (REQUIRED)**
+**MUST verify** arrow function enforcement:
+```bash
+npm run check:arrow-functions  # Automated detection
+# Manual verification for any missed patterns:
+grep -rn '^export function \|^function [A-Z]' src/components/ src/app/ src/lib/
+```
+
+#### 3. **Functional Verification (REQUIRED)**
+**MUST verify** the application works correctly:
+1. Start development server: `npm run dev`
+2. Navigate to application using Playwright MCP browser tools
+3. Test implemented functionality through browser interactions
+4. Check browser console for runtime errors
+5. Take screenshots to document working state
+
+#### 4. **Error Response Protocol**
+If verification reveals issues:
+1. **STOP** implementation immediately
+2. Analyze root cause through error messages and logs
+3. Fix all compilation/runtime errors
+4. Re-run complete verification cycle
+5. **ONLY** consider task complete when ALL verifications pass
+
+#### 5. **Documentation Update Requirement**
+For any new development commands or verification procedures:
+1. Update this CLAUDE.md file immediately
+2. Ensure all team members can replicate verification steps
+3. Add to automated CI/CD pipeline when available
+
+**This verification protocol prevents technical debt and ensures code quality standards.**
 
 ### Component Testing
 Test files are located in `src/components/__tests__/`. Focus on:
