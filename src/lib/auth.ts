@@ -10,6 +10,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import type { Adapter } from 'next-auth/adapters'
 import GoogleProvider from 'next-auth/providers/google'
 import GitHubProvider from 'next-auth/providers/github'
+import CredentialsProvider from 'next-auth/providers/credentials'
 
 import { prisma } from '@/lib/prisma'
 
@@ -28,27 +29,61 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GITHUB_CLIENT_ID ?? '',
       clientSecret: process.env.GITHUB_CLIENT_SECRET ?? '',
     }),
+
+    // Development-only Credentials provider
+    ...(process.env.NODE_ENV === 'development' ? [
+      CredentialsProvider({
+        id: 'dev-login',
+        name: 'Development Login',
+        credentials: {
+          email: { 
+            label: 'Email', 
+            type: 'email', 
+            placeholder: 'admin@example.com' 
+          },
+        },
+        async authorize(credentials) {
+          if (!credentials?.email) return null
+
+          // Find user in database
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            select: { 
+              id: true, 
+              email: true, 
+              name: true, 
+              role: true 
+            }
+          })
+
+          if (user) {
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+            }
+          }
+
+          return null
+        },
+      })
+    ] : []),
   ],
 
   session: {
-    strategy: 'database',
+    strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
   callbacks: {
-    session: async ({ session, user }) => {
-      // Fetch user role from database
-      const dbUser = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: { role: true }
-      })
-
+    session: async ({ session, token }) => {
       return {
         ...session,
         user: {
           ...session.user,
-          id: user.id,
-          role: dbUser?.role || 'PLAYER',
+          id: token.id as string,
+          role: token.role as string,
         },
       }
     },

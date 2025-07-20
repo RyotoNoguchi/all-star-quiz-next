@@ -84,12 +84,9 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 
 // Admin procedure (requires admin role)
 export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  const user = await ctx.prisma.user.findUnique({
-    where: { id: ctx.session.user.id },
-    select: { role: true },
-  })
+  const userRole = ctx.session.user.role
 
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+  if (!userRole || (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN')) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Admin access required'
@@ -99,19 +96,15 @@ export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   return next({
     ctx: {
       ...ctx,
-      user,
     },
   })
 })
 
 // Super admin procedure (requires super admin role)
 export const superAdminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  const user = await ctx.prisma.user.findUnique({
-    where: { id: ctx.session.user.id },
-    select: { role: true },
-  })
+  const userRole = ctx.session.user.role
 
-  if (!user || user.role !== 'SUPER_ADMIN') {
+  if (!userRole || userRole !== 'SUPER_ADMIN') {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Super admin access required'
@@ -121,7 +114,6 @@ export const superAdminProcedure = protectedProcedure.use(async ({ ctx, next }) 
   return next({
     ctx: {
       ...ctx,
-      user,
     },
   })
 })

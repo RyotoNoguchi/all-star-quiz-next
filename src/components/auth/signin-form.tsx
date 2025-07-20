@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 export const SignInForm: FC = () => {
   const [isLoading, setIsLoading] = useState<string | null>(null)
 
-  const handleSignIn = async (provider: 'google' | 'github') => {
+  const handleSignIn = async (provider: 'google' | 'github' | 'dev-login') => {
     try {
       setIsLoading(provider)
       await signIn(provider, {
@@ -23,6 +23,20 @@ export const SignInForm: FC = () => {
       })
     } catch (error) {
       console.error('Sign in error:', error)
+      setIsLoading(null)
+    }
+  }
+
+  const handleDevLogin = async (email: string) => {
+    try {
+      setIsLoading('dev-login')
+      await signIn('dev-login', {
+        email,
+        callbackUrl: '/',
+        redirect: true,
+      })
+    } catch (error) {
+      console.error('Dev login error:', error)
       setIsLoading(null)
     }
   }
@@ -96,6 +110,30 @@ export const SignInForm: FC = () => {
           </span>
         </div>
       </div>
+
+      {/* Development-only quick login */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="space-y-2">
+          <div className="text-center">
+            <span className="text-xs text-yellow-400">Development Mode</span>
+          </div>
+          <Button
+            onClick={() => handleDevLogin('admin@example.com')}
+            disabled={isLoading !== null}
+            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+            size="sm"
+          >
+            {isLoading === 'dev-login' ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Signing in as Admin...</span>
+              </div>
+            ) : (
+              'Quick Login as Admin'
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
