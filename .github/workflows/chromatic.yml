@@ -1,0 +1,45 @@
+name: "Chromatic VRT"
+
+# Trigger workflow on push to main and pull requests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  chromatic:
+    name: Run Chromatic Visual Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build Storybook
+        run: npm run build-storybook
+        
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          # Project token from repository secrets
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          # Upload the built Storybook
+          storybookBuildDir: storybook-static
+          # Don't wait for build to complete on non-main branches
+          exitZeroOnChanges: true
+          # Only run on main branch for auto-accept
+          autoAcceptChanges: ${{ github.ref == 'refs/heads/main' }}
+          # Skip Chromatic build if [skip ci] in commit message
+          skip: ${{ contains(github.event.head_commit.message, '[skip ci]') }}
