@@ -4,8 +4,10 @@
  * User administration interface with role management
  */
 
-import { type FC } from 'react'
+import { type FC, Suspense } from 'react'
 import { AdminLayout } from '@/components/admin/layout/admin-layout'
+import { UserDataTable } from '@/components/admin/users/user-data-table'
+import { Button } from '@/components/ui/button'
 
 const AdminUsersPage: FC = () => {
   return (
@@ -13,23 +15,27 @@ const AdminUsersPage: FC = () => {
       title="ユーザー管理" 
       description="ユーザーアカウントとロールの管理"
     >
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">ユーザー一覧</h2>
-            <div className="flex space-x-3">
-              <button className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                エクスポート
-              </button>
-              <button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                ユーザー招待
-              </button>
-            </div>
+      <div className="space-y-6">
+        {/* Header with Action Buttons */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">ユーザー一覧</h2>
+            <p className="text-gray-600 mt-1">全ユーザーのロール管理と統計</p>
+          </div>
+          <div className="flex space-x-3">
+            <Button variant="outline" className="bg-gray-50 hover:bg-gray-100">
+              エクスポート
+            </Button>
+            <Button className="bg-primary-600 hover:bg-primary-700">
+              ユーザー招待
+            </Button>
           </div>
         </div>
-        <div className="p-6">
-          <p className="text-gray-500">ユーザー管理テーブルを実装中...</p>
-        </div>
+
+        {/* Users Data Table */}
+        <Suspense fallback={<div>Loading...</div>}>
+          <UserDataTable />
+        </Suspense>
       </div>
     </AdminLayout>
   )
