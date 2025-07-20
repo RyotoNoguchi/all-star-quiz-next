@@ -1,6 +1,6 @@
 /**
  * Admin Layout Component
- * 
+ *
  * Main layout for admin panel with sidebar and header
  */
 
@@ -37,7 +37,7 @@ export const AdminLayout: FC<Props> = ({ children, title, description }) => {
                 <p className="text-sm text-gray-600 mt-1">{description}</p>
               )}
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <UserButton />
             </div>

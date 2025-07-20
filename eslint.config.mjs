@@ -64,6 +64,23 @@ const eslintConfig = [
       ],
     },
   },
+  // Prevent usage of undefined Tailwind CSS classes
+  {
+    files: ['src/**/*.{ts,tsx,js,jsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Literal[value*="bg-background"]',
+          message: 'Do not use "bg-background" class. Use "bg-white dark:bg-gray-900" or appropriate Tailwind classes instead.',
+        },
+        {
+          selector: 'TemplateLiteral *[value*="bg-background"]',
+          message: 'Do not use "bg-background" class. Use "bg-white dark:bg-gray-900" or appropriate Tailwind classes instead.',
+        },
+      ],
+    },
+  },
 ]
 
 export default eslintConfig
