@@ -126,7 +126,7 @@ export const QuizGame: FC<Props> = ({ gameCode, playerId, onLeave }) => {
         })
       }
     }
-  }, [gameCode, playerId, quizState.isAnswered, quizState.isEliminated, quizState.currentQuestion])
+  }, [quizState.isAnswered, quizState.isEliminated, quizState.currentQuestion, socket, gameCode, playerId])
 
   // Determine button state based on quiz state
   const getButtonState = (choice: string): QuizButtonState => {
